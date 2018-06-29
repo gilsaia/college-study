@@ -1,3 +1,4 @@
+//字符串dp问题，注意可在字符串的任意位置添加或删除
 #include<iostream>
 #include<string>
 using namespace std;
