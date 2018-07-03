@@ -1,3 +1,5 @@
+//这题说是dp题但是原理emmmmmmmm非常奇妙
+//只能是照着题解大概理解了感觉有点似懂非懂
 #include<stdio.h>
 #include<algorithm>
 using namespace std;
