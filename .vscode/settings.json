@@ -1,17 +1,9 @@
 {
     "files.associations": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-        "algorithm": "cpp",
-        "limits": "cpp"
-    }
-=======
-        "ostream": "cpp",
-        "iostream": "cpp"
-    },
-    "C_Cpp.errorSquiggles": "Disabled"
->>>>>>> algorithms
-=======
+
+
+
+
         "algorithm": "cpp",
         "cmath": "cpp",
         "cstddef": "cpp",
@@ -52,5 +44,4 @@
         "xtr1common": "cpp",
         "xutility": "cpp"
     }
->>>>>>> C++primer
 }
