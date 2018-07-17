@@ -1,3 +1,4 @@
+//有点事情没多看就把签到题写了···
 #include<iostream>
 using namespace std;
 int zhuan[256];
