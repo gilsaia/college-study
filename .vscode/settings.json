@@ -1,12 +1,9 @@
 {
     "files.associations": {
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> C++primer
         "algorithm": "cpp",
         "cmath": "cpp",
         "cstddef": "cpp",
