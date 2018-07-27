@@ -1,0 +1,150 @@
+assume cs:code
+data segment
+db 'scan:','$','ascii:','$','function key:','$'
+data ends
+sta segment
+db 256 dup(0)
+sta ends
+num segment
+db 256 dup(0)
+num ends
+stack segment
+db 128 dup(0)
+stack ends
+code segment
+start:
+mov ax,stack
+mov ss,ax
+mov sp,16
+s:
+mov ax,data
+mov ds,ax
+mov ah,2
+mov bh,0
+mov dh,1
+mov dl,0
+int 10h
+mov dx,0
+mov ah,9
+int 21h;scan打印
+mov ax,sta
+mov ds,ax
+mov ax,0
+mov si,2
+mov al,ds:[si]
+cmp ax,1
+je over
+call dtoc
+mov ax,num
+mov ds,ax
+mov dx,0
+mov ah,9
+int 21h;对应码打印
+mov ax,data
+mov ds,ax
+mov ah,2
+mov bh,0
+mov dh,2
+mov dl,0
+int 10h
+mov dx,6
+mov ah,9
+int 21h;asc打印
+mov ax,sta
+mov ds,ax
+mov si,0
+mov ax,ds:[si]
+call dtoc
+mov ax,num
+mov ds,ax
+mov dx,0
+mov ah,9
+int 21h;对应码打印
+mov ax,data
+mov ds,ax
+mov ah,2
+mov bh,0
+mov dh,3
+mov dl,0
+int 10h
+mov dx,13
+mov ah,9
+int 21h;功能码
+pop ax
+mov ah,0
+call dtoc
+mov ax,num
+mov ds,ax
+mov dx,0
+mov ah,9
+int 21h;功能码打印
+mov ax,sta
+mov ds,ax
+mov si,0
+mov ah,2
+int 16h
+push ax
+mov ah,0
+int 16h;等待键盘输入
+mov ds:[si],al
+add si,2
+mov ds:[si],ah
+mov ax,2
+mov bh,0
+mov dh,0
+mov dl,0
+int 10h
+mov si,0
+mov ax,ds:[si]
+mov ah,9
+mov bl,12
+mov bh,0
+mov cx,1
+int 10h
+inc cx
+cmp cx,0
+jne s
+over:
+mov ax,4c00h
+int 21h
+dtoc:;十六进制数转字符串
+push ax
+push di
+push cx
+push dx
+push si
+mov di,0 
+mov si,0
+s1:
+mov cx,10d 
+mov dx,0
+div cx
+mov cx,ax 
+jcxz s2
+add dx,30h
+push dx 
+inc di
+jmp short s1
+s2:
+add dx,30h 
+push dx
+inc di
+mov cx,di
+mov ax,num
+mov es,ax
+s3:
+pop ax
+mov es:[si],al 
+inc si
+loop s3
+mov ax,'$'
+mov es:[si],ax
+pop si
+pop dx
+pop cx
+pop di
+pop ax
+ret
+code ends
+end start 
+
