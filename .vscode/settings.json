@@ -1,13 +1,8 @@
 {
     "files.associations": {
-<<<<<<< HEAD
         "algorithm": "cpp",
-        "limits": "cpp"
-    }
-=======
-        "ostream": "cpp",
+        "limits": "cpp",
         "iostream": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
->>>>>>> algorithms
 }

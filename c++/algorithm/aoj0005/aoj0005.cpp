@@ -1,3 +1,4 @@
+//最简单的求最小公约数和最大公倍数模板，不过int爆数据了··改long long就好··
 #include<iostream>
 using namespace std;
 long long Gcd(long long a,long long b)
