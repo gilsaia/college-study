@@ -284,3 +284,24 @@ p1=p3;p2=p3;//前半句非法，与上面同理，p3的顶层const并无影响
 ##### 练习2.32
 
 非法，若null不是系统命名变量，则将`*p=null`改为`*p=&null`即可，若为系统变量，则整体改名即可
+
+类型别名的两种方法，第一种为typrdef，与声明语句类似，只不过定义的不是变量而是类型别名，允许包含类型修饰
+例：
+```
+typedef double wages;//wages是double的别名
+typrdef wages base,*p;//base是wages的别名，p是wages *的别名
+```
+第二种是别名声明
+例：
+```
+using SI=double;//SI是double的别名
+```
+
+当用类型别名指代复合类型或常量要时刻注意
+例如
+```
+typrdef char*pstring;
+const pstring cstr=0;//这里cstr是常量指针而非指向常量的指针，这个const为顶层const
+//当用pstring代指时基本数据类型就是指针，这时加const使指针为常量指针
+const char * cstr=0;//!!!注意这个和上面有本质的不同！基本类型是char，*只作为声明符！此时cstr为指向常量的指针
+```
