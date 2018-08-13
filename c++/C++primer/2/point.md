@@ -305,3 +305,63 @@ const pstring cstr=0;//这里cstr是常量指针而非指向常量的指针，�
 //当用pstring代指时基本数据类型就是指针，这时加const使指针为常量指针
 const char * cstr=0;//!!!注意这个和上面有本质的不同！基本类型是char，*只作为声明符！此时cstr为指向常量的指针
 ```
+
+auto变量必须有初始值
+
+一条语句只有一个基本类型，所以语句中所有变量的初始基本数据类型都必须一样
+
+auto一般会忽略顶层const,而底层const会被保留，对引用实际作用的是其引用的对象
+
+**设置为auto的引用时，顶层常量属性仍会保留**
+
+**对常量取地址是一种底层const**
+
+
+如果需要auto类型是一个顶层const，需要明确指出
+例：
+```
+int i=0;
+const int ci=i,&cr=ci;
+auto b=ci;//b是一个整数
+auto c=cr;//同上
+auto d=&i;//d是一个整型指针
+auto e=&ci;//e是一个指向整数常量的指针
+const auto f=ci;//f是const int
+auto &n=i,*p2=&ci;//错误，i类型是int而&ci类型是const int
+```
+
+##### 练习2.33
+
+d，e为指针无法赋值，g为整型常量引用，无法更改值
+
+##### 练习2.35
+
+i为int型常量，j为int型变量，k为int型常量引用，p为指向常量int的指针，j2为int型常量，k2与k相同
+
+decltype类型说明符返回操作数的数据类型，此过程编译器只分析表达式并得到它的类型并不实际计算表达式的值
+
+decltype会保留 **顶层const和引用**
+
+引用从来都作为其所指对象的同义词出现，只有在decltype处例外
+
+```
+int i=42,*p=&i,&r=i;
+decltype(r+0) b;//r为引用类型，但r+0结果为int类型
+decltype(*p) c;//错误，解引用指针会得到int&
+decltype((i)) d;//错误，d为int&，须初始化
+```
+**当变量多加一层括号时会被当做特殊的表达式使decltype得到引用类型**
+
+##### 练习2.36
+
+c int
+d int&
+
+##### 练习2.37
+
+c int
+d int&
+
+##### 练习2.38
+
+最主要的区别两者对引用和顶层const的处理不同
