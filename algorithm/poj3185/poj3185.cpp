@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
- 
+ #include<algorithm>
 using namespace std;
 const int maxn = 25;
  
