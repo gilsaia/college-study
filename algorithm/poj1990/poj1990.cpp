@@ -1,3 +1,4 @@
+//emmmmmmmm忘了写了···树状数组的例题···把牛们按耳背值排完序算就好···就是会爆int要注意···
 #include<stdio.h>
 #include<algorithm>
 using namespace std;
