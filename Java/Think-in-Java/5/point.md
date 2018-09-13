@@ -93,3 +93,19 @@ Integer[] b=new Integer[]{new Integer(1),new Integer(2),3,};
 //这种方式可以在任意地方使用，甚至是方法调用的内部
 ```
 
+有可变参数列表可以自动填充数组，当传递数组时则不会进行任何转换，可以使用任何类型的可变参数列表，包括基本类型，可变参数列表不依赖于自动包装机制
+```Java
+class newvarargs
+{
+    static void printArray(Object... args)
+    {
+        for(Object obj:args)
+        {
+            System.out.print(obj+' ');
+        }
+        System.out.println();
+    }
+    //...
+}
+```
+当有多个重载函数使用可变参数列表时，对于无参的调用可能产生错误，所以尽量只在重载方法的一个版本使用可变参数列表或尽量不使用，当无法避免冲突时可在每个重载方法前放一个非可变参数
