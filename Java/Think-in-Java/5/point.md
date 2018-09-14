@@ -109,3 +109,39 @@ class newvarargs
 }
 ```
 当有多个重载函数使用可变参数列表时，对于无参的调用可能产生错误，所以尽量只在重载方法的一个版本使用可变参数列表或尽量不使用，当无法避免冲突时可在每个重载方法前放一个非可变参数
+
+### 5.9
+
+对于枚举类型enum，可以直接变为string打印，同时也自带ordinal()方法用来表示某个特定enum常量的声明顺序，以及static values()声明方法，用来按照常量的声明顺序产生由常量值构成的数组
+```Java
+public enum Spcic
+{
+    NOT,MILD,MEDIUM,HOT,FLAMING
+}
+public class totest
+{
+    public static void main(String[] args)
+    {
+        for(Spcic s:Spcic.values())
+        {
+            System.out.println(s+".ordinal"+s.ordinal());
+        }//序号从0开始
+    }
+}
+```
+enum可以和switch语句联合使用
+```Java
+public static void main(String[] args)
+{
+    Spcic de;
+    //...
+    switch(de)
+    {
+        case NOT:System.out.println("00");
+        break;
+        case MILD:;//...
+        //...
+        default:;
+    }
+}
+```
