@@ -39,10 +39,15 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xutility": "cpp",
+        "ctime": "cpp",
+        "functional": "cpp",
         "list": "cpp",
         "map": "cpp",
+        "memory": "cpp",
         "set": "cpp",
+        "tuple": "cpp",
         "unordered_map": "cpp",
+        "xfunctional": "cpp",
         "xhash": "cpp",
         "xtree": "cpp"
     }
