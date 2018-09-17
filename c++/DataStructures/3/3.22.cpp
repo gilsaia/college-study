@@ -17,7 +17,7 @@ double polan(string s)
     }
     for(int i=0;i<change.size();i++)
     {
-        if(change[i][0]>='0'<='9')
+        if(change[i][0]>='0'&&change[i][0]<='9')
         {
             double temp=0;
             char save[100];
@@ -43,11 +43,12 @@ double polan(string s)
                 tocal.push(temp1);
                 break;
                 case '-':
-                double temp1;
+               double temp1;
                 temp1=tocal.top();
                 tocal.pop();
-                temp1-=tocal.top();
+                double temp2=tocal.top();
                 tocal.pop();
+                temp1=temp2-temp1;
                 tocal.push(temp1);
                 break;
                 case '*':
