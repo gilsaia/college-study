@@ -34,9 +34,51 @@ Java没有C的条件编译功能，为了实现调试，可以创建不同的包
 
 取得对某成员的访问权限有以下几种
 
-> * 使该成员成为public，因此无论是谁都可以访问该成员
-> * 通过不加访问权限修饰词并将其他类放置于同一个包内的方式给成员赋予包访问权限
-> * 通过继承而来的类可以访问public和protected成员
-> * 通过Java提供的访问器和变异器方法
+ * 使该成员成为public，因此无论是谁都可以访问该成员
+ * 通过不加访问权限修饰词并将其他类放置于同一个包内的方式给成员赋予包访问权限
+ * 通过继承而来的类可以访问public和protected成员
+ * 通过Java提供的访问器和变异器方法
 
 对于处于相同目录下且未给自己设定任何包名称，Java将自动把这些文件看作隶属于该目录的默认包中，于是为该目录中所有其他的文件都提供了包访问权限
+
+使用类的客户端成员是无法访问包访问权限的成员的，只有声明为public才能被客户端程序员使用
+
+protected也提供包访问权限
+
+### 6.4
+
+* 每个编译单元只能有一个public类，如果含有一个以上的public类编译器会报错
+* public类与该编译单元的文件名必须完全匹配，包括大小写
+* 但一个编译单元不含public是允许的
+
+除了内部类外，类不可以是private或protected的
+
+如果不希望其他人对该类有访问权限，可以把所有的构造器都指定为private，但该类的static成员内部可以创建
+```Java
+class Soup1{
+    private Soup1(){}
+    public static Soup1 makeSoup(){
+        return new Soup1();
+    }
+}
+class Soup2{
+    private Soup2(){}
+    private static Soup2 ps1=new Soup2();
+    public static Soup2 access(){
+        return ps1;
+    }
+    public void f(){}
+}
+public class Lunch{
+    void testprivate(){
+        //! Soup1 soup=new Soup1();
+    }
+    void testStatic(){
+        Soup1 soup=Soup1.makeSoup();
+    }
+    void testsing(){
+        Soup2.access().f();
+    }
+}
+```
+上面的Soup2用到了所谓的设计模式，这个设计模式被称为singleton(单例)
