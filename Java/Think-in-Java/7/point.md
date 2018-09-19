@@ -33,3 +33,22 @@ class waterSource
 当重载方法中希望调用基类的方法时，可用super关键词，表示超类，可以此调用基类版本的方法
 
 为保证对基类的正确初始化，在构造器中会调用基类构造器来执行初始化
+
+对没有默认构造器的基类，必须显式调用基类的构造器
+```Java
+class Game{
+    Game(int i){
+        System.out.println("Game!!!!!!!!!!!");
+    }
+}
+public class chess extends Game{
+    chess(){
+        super(11);
+        System.out.println("CHESS!!!!!!!");
+    }
+    public static void main(String[] args)
+    {
+        chess x=new chess();
+    }
+}
+```
