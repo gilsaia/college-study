@@ -11,6 +11,16 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - nine",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopOnEntry": false,
+            "mainClass": "nine",
+            "args": ""
+        },
+        {
+            "type": "java",
             "name": "Debug (Launch) with Arguments Prompt",
             "request": "launch",
             "cwd": "${workspaceFolder}",
@@ -41,7 +51,7 @@
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
-            "miDebuggerPath": "D:/mingw/bin/gdb.exe", // GDB的路径，注意替换成自己的路径
+            "miDebuggerPath": "D:/mingw/bin/gdb.exe",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -49,5 +59,6 @@
                     "ignoreFailures": true
                 }
             ]
-        }]
+        }
+    ]
 }

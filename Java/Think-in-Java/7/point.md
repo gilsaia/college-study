@@ -52,3 +52,28 @@ public class chess extends Game{
     }
 }
 ```
+### 7.3
+
+所谓的代理在Java不直接支持，但通过ide可以实现
+
+代理是与继承有所差别的，继承是一个新的类型完全包括了旧的类型与方法，而代理首先通过组合在新的类中创建旧类，然后重写对应的方法，只是调用旧类的方法
+```Java
+class SpaceShipControls{
+    void up(int v){}
+    void down(int v){}
+    //...
+}
+public class SpaceShip{
+    private SpaceShipControls controls=new SpaceShipControls();
+    public void up(int v){
+        controls.up(v);
+    }
+    public void down(int v){
+        controls.down(v);
+    }
+    //...
+}
+```
+### 7.4
+
+一旦涉及到垃圾处理器，要小心，如果有必要自己进行清理的话，可以编写自己的清理方法，但不要使用finalize()
