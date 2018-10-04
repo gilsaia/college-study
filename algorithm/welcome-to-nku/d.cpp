@@ -1,5 +1,7 @@
 //思路没想对···找到题解了···
-#include<bits/stdc++.h>
+#include<queue>
+#include<iostream>
+#include<algorithm>
 using namespace std;
 const int N=3e5+100;
 const int INF=0x3f3f3f3f;
@@ -32,7 +34,7 @@ struct nodel
 };
 nodel l;
 noder r;
-priority_queue<nodel>pl;//注意两个结构体都需要进行重载
+priority_queue<nodel>pl;
 priority_queue<noder>pr;
 int main()
 {

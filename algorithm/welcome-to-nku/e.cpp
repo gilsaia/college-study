@@ -20,7 +20,7 @@ int main()
     {
         scanf("%d",&a[i]);
         ll x=a[i];
-        for(int j=1;j<=10;j++)//预处理存余数个数
+        for(int j=1;j<=10;j++)
         {
             x*=10;
             x%=m;
@@ -31,10 +31,10 @@ int main()
     for(int i=0;i<n;i++)
     {
         int t=a[i]%m;
-        int len=log10(a[i])+1;//求一个数是几位数
-        sum+=mp[len][(m-t)%m];  //加上与当前数连接余数为0的个数
+        int len=log10(a[i])+1;
+        sum+=mp[len][(m-t)%m];
         ll x=1;
-        for(int j=1;j<=len;j++) x=(x*10)%m;  //除去自身
+        for(int j=1;j<=len;j++) x=(x*10)%m; 
         if(((a[i]*x)%m+a[i]%m)%m==0) sum--;
     }
     printf("%I64d",sum);
