@@ -27,6 +27,6 @@ class calculator
     calculator(link[]);
     calculator(comparable,comparable);
     private:
-    link *root;
+    link<comparable> *root;
 };
 #endif
