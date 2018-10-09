@@ -3,6 +3,14 @@
 #include<fstream>
 #include<iostream>
 #include<algorithm>
+#include<vector>
+#include<utility>
+using std::vector;
+using std::sort;
+using std::fstream;
+using std::ofstream;
+using std::ifstream;
+using std::pair;
 template <typename comparable>
 struct link
 {
@@ -23,9 +31,10 @@ class calculator
 {
     public:
     void print();
-    calculator(link<comparable>);
-    calculator(link<comparable>[]);
-    calculator(comparable,comparable);
+    calculator();
+    calculator(vector<link<comparable>>);
+    calculator(link<comparable>*);
+    ~calculator();
     calculator operator-()
     {
         link<comparable> *cur=root;
@@ -34,7 +43,7 @@ class calculator
             cur->coefficient=-cur->coefficient;
             cur=cur->next;
         }
-        return dat;
+        return *this;
     }
     calculator operator+(const calculator &rhs)
     {
@@ -48,21 +57,27 @@ class calculator
             {
                 cur->index=tolhs->index;
                 cur->coefficient=tolhs->coefficient;
-                link<comparable> *tmp;
-                tmp=new link<comparable>;
-                cur->next=tmp;
-                cur=tmp;
-                tolhs=tolhs->next;
+                if(cur->index!=(comparable)0)
+                {
+                    link<comparable> *tmp;
+                    tmp=new link<comparable>;
+                    cur->next=tmp;
+                    cur=tmp;
+                    tolhs=tolhs->next;
+                }
             }
             else if(tolhs==nullptr)
             {
                 cur->index=torhs->index;
                 cur->coefficient=torhs->coefficient;
-                link<comparable> *tmp;
-                tmp=new link<comparable>;
-                cur->next=tmp;
-                cur=tmp;
-                torhs=torhs->next;
+                if(cur->index!=(comparable)0)
+                {
+                    link<comparable> *tmp;
+                    tmp=new link<comparable>;
+                    cur->next=tmp;
+                    cur=tmp;
+                    torhs=torhs->next;
+                }
             }
             else
             {
@@ -90,20 +105,50 @@ class calculator
                 {
                     cur->index=tolhs->index;
                     cur->coefficient=tolhs->coefficient+torhs->coefficient;
-                    link<comparable> *tmp;
-                    tmp=new link<comparable>;
-                    cur->next=tmp;
-                    cur=tmp;
-                    tolhs=tolhs->next;
-                    torhs=torhs->next;
+                    if(cur->index!=(comparable)0)
+                    {
+                        link<comparable> *tmp;
+                        tmp=new link<comparable>;
+                        cur->next=tmp;
+                        cur=tmp;
+                        tolhs=tolhs->next;
+                        torhs=torhs->next;
+                    }
                 }
             }
         }
-        cur->coefficient=(comparable)0;
-        cur->index=(comparable)0;
         cur->next=nullptr;
-        calculator sum(*result);
-        return sum;
+        return calculator(result);
+    }
+    calculator operator-(const calculator &rhs)
+    {
+        return *this+(-rhs);
+    }
+    calculator operator*(const calculator &rhs)
+    {
+        link<comparable> *tolhs=root,*torhs=rhs.root,*temp,*tocreate;
+        calculator result;
+        while(tolhs->next!=nullptr)
+        {
+            temp=new link<comparable>;
+            link<comparable> *calrhs=torhs,*tmpsave=temp;
+            while(calrhs->next!=nullptr)
+            {
+                temp->coefficient=tolhs->coefficient*calrhs->coefficient;
+                temp->index=tolhs->index+calrhs->index;
+                tocreate=new link<comparable>;
+                temp->next=tocreate;
+                temp=tocreate;
+                calrhs=calrhs->next;
+            }
+            temp->coefficient=(comparable)0;
+            temp->index=(comparable)0;
+            temp->next=nullptr;
+            calculator toadd(tmpsave);
+            result=result+toadd;
+            tolhs=tolhs->next;
+        }
+        return result;
     }
     private:
     link<comparable> *root;
