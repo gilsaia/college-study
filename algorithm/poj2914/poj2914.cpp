@@ -1,85 +1,68 @@
-#include<vector>
-#include<cstdio>
-#include<algorithm>
-#include<cstring>
-using namespace std;
-const int INF=1e9;
-struct edge
-{
-    int to,cap,rev;
-};
-vector<edge> G[520];
-bool used[520];
-void add_edge(int from,int to,int cap)
-{
-    G[from].push_back((edge){to,cap,G[to].size()});
-    G[to].push_back((edge){from,0,G[from].size()-1});
+//全局最小割模板题····用的算法算是模板···但这个题型是真的少见···stoer wagner算法用类似最小生成树的算法求一次后不断合并最后一次两个点N-1次后最小割即为所求
+#include<stdio.h>
+#include<string.h>
+ 
+#define NN 504
+#define INF 1 << 30
+int vis[NN];
+int wet[NN];
+int combine[NN];
+int map[NN][NN];
+ 
+int S, T, minCut, N;
+void Search(){
+     int i, j, Max, tmp;
+     memset(vis, 0, sizeof(vis));
+     memset(wet, 0, sizeof(wet));
+     S = T = -1;
+     for (i = 0; i < N; i++){
+         Max = -INF;
+         for (j = 0; j < N; j++){
+             if (!combine[j] && !vis[j] && wet[j] > Max){
+                tmp = j;
+                Max = wet[j];
+             }
+         }
+         if (T == tmp) return;
+         S = T; T = tmp;
+         minCut = Max;
+         vis[tmp] = 1;
+         for (j = 0; j < N; j++){
+             if (!combine[j] && !vis[j]){
+                wet[j] += map[tmp][j];
+             }
+         }
+     }
 }
-int dfs(int v,int t,int f)
-{
-    if(v==t)
-    {
-        return f;
-    }
-    used[v]=1;
-    for(int i=0;i<G[v].size();++i)
-    {
-        edge &e=G[v][i];
-        if(!used[e.to]&&e.cap>0)
-        {
-            int d=dfs(e.to,t,min(f,e.cap));
-            if(d>0)
-            {
-                e.cap-=d;
-                G[e.to][e.rev].cap+=d;
-                return d;
+int Stoer_Wagner(){
+    int i, j;
+    memset(combine, 0, sizeof(combine));
+    int ans = INF;
+    for (i = 0; i < N - 1; i++){
+        Search();
+        if (minCut < ans) ans = minCut;
+        if (ans == 0) return 0;
+        combine[T] = 1;
+        for (j = 0; j < N; j++){
+            if (!combine[j]){
+               map[S][j] += map[T][j];
+               map[j][S] += map[j][T];
             }
         }
     }
-    return 0;
+    return ans;
 }
-int max_flow(int s,int t)
-{
-    int flow=0;
-    for(;;)
-    {
-        memset(used,0,sizeof(used));
-        int f=dfs(s,t,INF);
-        if(f==0)
-        {
-            return flow;
-        }
-        flow+=f;
-    }
-}
-int tocal[520];
 int main()
 {
-    int N,M;
-    while(scanf("%d%d",&N,&M)!=EOF)
-    {
-        memset(tocal,0,sizeof(tocal));
-        for(int i=0;i<=N+3;++i)
-        {
-            G[i].clear();
-        }
-        for(int i=0;i<M;++i)
-        {
-            int a,b,c;
-            scanf("%d%d%d",&a,&b,&c);
-            ++a,++b;
-            tocal[a]+=c;
-            tocal[b]+=c;
-            add_edge(a,b,c);
-            add_edge(b,a,c);
-        }
-        for(int i=1;i<=N;++i)
-        {
-            add_edge(0,i,tocal[i]);
-            add_edge(i,N+2,tocal[i]);
-        }
-        int ans=max_flow(0,N+2);
-        printf("%d\n",ans);
+    int a, b, c, M;
+    while(scanf("%d%d", &N, &M) != EOF){
+       memset(map, 0, sizeof(map));
+       while(M--){
+          scanf("%d%d%d", &a, &b, &c);
+          map[a][b] += c;
+          map[b][a] += c;
+       }
+       printf("%d\n", Stoer_Wagner());
     }
     return 0;
 }
