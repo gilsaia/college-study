@@ -31,10 +31,27 @@ class calculator
 {
     public:
     void print();
-    calculator();
-    calculator(vector<link<comparable>>);
+    calculator()
+    {
+        root->coefficient=(comparable)0;
+        root->index=(comparable)0;
+        root->next=nullptr;
+    }
+    calculator(vector<link<comparable>> organ)
+    {
+        
+    }
     calculator(link<comparable>*);
-    ~calculator();
+    ~calculator()
+    {
+        link *theold=root,*todel=root->next;
+        while(todel!=nullptr)
+        {
+            delete theold;
+            theold=todel;
+            todel=todel->next;
+        }
+    }
     calculator operator-()
     {
         link<comparable> *cur=root;
@@ -57,7 +74,7 @@ class calculator
             {
                 cur->index=tolhs->index;
                 cur->coefficient=tolhs->coefficient;
-                if(cur->index!=(comparable)0)
+                if(cur->coefficient!=(comparable)0&&cur->index!=(comparable)0)
                 {
                     link<comparable> *tmp;
                     tmp=new link<comparable>;
@@ -70,7 +87,7 @@ class calculator
             {
                 cur->index=torhs->index;
                 cur->coefficient=torhs->coefficient;
-                if(cur->index!=(comparable)0)
+                if(cur->coefficient!=(comparable)0&&cur->index!=(comparable)0)
                 {
                     link<comparable> *tmp;
                     tmp=new link<comparable>;
@@ -105,7 +122,7 @@ class calculator
                 {
                     cur->index=tolhs->index;
                     cur->coefficient=tolhs->coefficient+torhs->coefficient;
-                    if(cur->index!=(comparable)0)
+                    if(cur->coefficient!=(comparable)0&&cur->index!=(comparable)0)
                     {
                         link<comparable> *tmp;
                         tmp=new link<comparable>;
