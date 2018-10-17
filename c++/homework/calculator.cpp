@@ -36,6 +36,16 @@ template <typename comparable>
 class calculator//实现多项式计算具体的类
 {
 public:
+	void insert(int coefficient,int index)
+	{
+		link<comparable> *input=new link<comparable>(coefficient,index),*cur=root;
+		while(cur->next->next!=nullptr)
+		{
+			cur=cur->next;
+		}
+		input->next=cur->next;
+		cur->next=input;
+	}
 	void print(ostream &os)//打印出当前的多项式
 	{
 		link<comparable> *toout = root;
