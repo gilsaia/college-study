@@ -1,3 +1,4 @@
+//实际输入多项式每一项皆以0,0结尾,+,-,*,%,/分别在最后按照0,1,2,3,4顺序对应
 #ifndef CALCULATOR_H
 #define CALCULATOR_H
 #include<fstream>
@@ -373,7 +374,9 @@ int main()
 	link<int>  in1, in2;
 	vector<link<int>> root1,root2;
 	int a, b;
-	while (cin >> a >> b, a | b)
+	ifstream input("G:\\cs\\coding\\c++\\homework\\calculatorin.txt");
+	ofstream output("G:\\cs\\coding\\c++\\homework\\calculatorout.txt");
+	while (input >> a >> b, a | b)
 	{
 		in1.coefficient = a;
 		in1.index = b;
@@ -383,9 +386,7 @@ int main()
 	in1.index = 0;
 	root1.push_back(in1);
 	calculator<int> num1(root1);
-	num1.print(cout);
-	a = 1, b = 1;
-	while (cin >> a >> b, a | b)
+	while (input >> a >> b, a | b)
 	{
 		in2.coefficient = a;
 		in2.index = b;
@@ -395,11 +396,57 @@ int main()
 	in2.index = 0;
 	root2.push_back(in2);
 	calculator<int> num2(root2);
-	num2.print(cout);
-	pair<calculator<int>, calculator<int>> num3 = num1/num2;
-	num3.first.print(cout);
-	num3.second.print(cout);
-	system("pause");
+	int thetype;
+	input>>thetype;
+	calculator<int> result;
+	pair<calculator<int>,calculator<int>> theresult;
+	switch(thetype)
+	{
+		case 0:
+		result=num1+num2;
+		num1.print(output);
+		output<<"+"<<endl;
+		num2.print(output);
+		output<<"="<<endl;
+		result.print(output);
+		break;
+		case 1:
+		result=num1-num2;
+		num1.print(output);
+		output<<"-"<<endl;
+		num2.print(output);
+		output<<"="<<endl;
+		result.print(output);
+		break;
+		case 2:
+		result=num1*num2;
+		num1.print(output);
+		output<<"*"<<endl;
+		num2.print(output);
+		output<<"="<<endl;
+		result.print(output);
+		break;
+		case 3:
+		num1.print(output);
+		output<<"dx="<<endl;
+		num1.MUL().print(output);
+		num2.print(output);
+		output<<"dx="<<endl;
+		num2.MUL().print(output);
+		break;
+		case 4:
+		theresult=num1/num2;
+		num1.print(output);
+		output<<"/"<<endl;
+		num2.print(output);
+		output<<"="<<endl;
+		theresult.first.print(output);
+		output<<"%"<<endl;
+		theresult.second.print(output);
+		break;
+		default:
+		break;
+	}
 	return 0;
 }
 #endif
