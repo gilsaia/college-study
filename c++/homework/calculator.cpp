@@ -70,7 +70,7 @@ public:
 	}
 	calculator(vector<link<comparable>> &organ)//对于输入的构造函数同时进行了排序
 	{
-		sort(organ.begin(), organ.end());
+		//sort(organ.begin(), organ.end());
 		link<comparable> *update=nullptr,*last=nullptr;
 		for (int i = 0; i < organ.size(); ++i)
 		{
@@ -313,7 +313,7 @@ public:
 		mod = nullptr;
 		while (copylhs.root->next != nullptr)
 		{
-			if (copylhs.root->index >= torhs->index&&copylhs.root->coefficient>=torhs->coefficient&&copylhs.root->coefficient%torhs->coefficient==0)
+			if (copylhs.root->index >= torhs->index&&copylhs.root->coefficient%torhs->coefficient==0)
 			{
 				comparable indtmp = copylhs.root->index - torhs->index,coetmp= copylhs.root->coefficient/torhs->coefficient;
 				link<comparable> *todev;
@@ -376,7 +376,7 @@ int main()
 	int a, b;
 	ifstream input("G:\\cs\\coding\\c++\\homework\\calculatorin.txt");
 	ofstream output("G:\\cs\\coding\\c++\\homework\\calculatorout.txt");
-	while (input >> a >> b, a | b)
+	while (input >> a >> b, a)
 	{
 		in1.coefficient = a;
 		in1.index = b;
@@ -386,7 +386,7 @@ int main()
 	in1.index = 0;
 	root1.push_back(in1);
 	calculator<int> num1(root1);
-	while (input >> a >> b, a | b)
+	while (input >> a >> b, a)
 	{
 		in2.coefficient = a;
 		in2.index = b;
