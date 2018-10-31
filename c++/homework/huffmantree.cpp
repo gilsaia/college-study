@@ -60,6 +60,10 @@ template <typename Save>
 class Huffmantree
 {
 public:
+	~Huffmantree()
+	{
+		deleteNode(root);
+	}
 	void buildTree(istream &in, ostream &out)
 	{
 		auto inpos=in.tellg();
@@ -154,6 +158,15 @@ private:
 		{
 			buildtranslate(root->left, code + '0',out);
 			buildtranslate(root->right, code + '1',out);
+		}
+	}
+	void deleteNode(HuffmantreeNode<Save> *root)
+	{
+		if(root!=nullptr)
+		{
+			deleteNode(root->left);
+			deleteNode(root->right);
+			delete root;
 		}
 	}
 	HuffmantreeNode<Save> *root;
