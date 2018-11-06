@@ -8,6 +8,7 @@ using std::queue;
 using std::vector;
 using std::cout;
 using std::cin;
+using std::endl;
 using std::ostream;
 using std::istream;
 using std::ofstream;
@@ -15,6 +16,7 @@ using std::ifstream;
 struct point
 {
     int x,y,step;
+    point():x{0},y{0},step{0}{}
     bool operator==(point &b)
     {
         return (x==b.x)&&(y==b.y);
@@ -73,5 +75,15 @@ bool functional(istream &in,ostream &out)
             }
         }
     }
-    
+    if(path[end.x][end.y].step==0)
+    {
+        out<<"Can't find the path"<<endl;
+        return false;
+    }
+    int prex=end.x,prey=end.y;
+    while(prex!=start.x,prey!=start.y)
+    {
+        prex=path[prex][prey].x,prey=path[prex][prey].y;
+        map[prex][prey]=
+    }
 }
