@@ -6,6 +6,10 @@
 #include<fstream>
 #include<algorithm>
 #include<iomanip>
+using std::ostream;
+using std::cout;
+using std::endl;
+using std::setw;
 using std::vector;
 using std::move;
 template <typename Save>
@@ -16,7 +20,8 @@ struct B_Tree_Node
     vector<B_Tree_Node *> children;
     size_t used,order;
     bool isleaf;
-    B_Tree_Node(size_t num=2,bool leaf=true,B_Tree_Node *parent=nullptr):father(parent),isleaf(leaf),used(0),order(num)
+    ostream &out;
+    B_Tree_Node(size_t num=2,bool leaf=true,B_Tree_Node *parent=nullptr,ostream &ou=cout):father(parent),isleaf(leaf),used(0),order(num),out(ou)
     {
         Elements.resize(order);
         children.resize(order+1);
@@ -109,12 +114,130 @@ struct B_Tree_Node
             children[i+1]->insertNonFull(k);
         }
     }
+    size_t findKey(Save k)
+    {
+        int idx=0;
+        while(idx<used&&Elements[idx]<k)
+        {
+            ++idx;
+        }
+        return idx;
+    }
+    void remove(Save k)
+    {
+        size_t idx=findKey(k);
+        if(idx<n&&Elements[idx]==k)
+        {
+            if(isleaf)
+            {
+                removeFromLeaf(idx);
+            }
+            else
+            {
+                removeFromNonLeaf(idx);
+            }
+        }
+        else
+        {
+            if(isleaf)
+            {
+                out<<"The Element "<<k<<" is does not exist in the tree\n";
+                return;
+            }
+            bool flag=((idx==used)?true:false);
+            if(children[idx]->used<order/2+1)
+            {
+                fill(idx);
+            }
+            if(flag&&idx>n)
+            {
+                children[idx-1]->remove(k);
+            }
+            else
+            {
+                children[idx]->remove(k);
+            }
+        }
+        return;
+    }
+    void removeFromLeaf(size_t idx)
+    {
+        for(size_t i=idx+1;i<n;++i)
+        {
+            Elements[i-1]=Elements[i];
+        }
+        --used;
+        return;
+    }
+    void removeFromNonLeaf(size_t idx)
+    {
+        Save k=Elements[idx];
+        if(children[idx]->used>=order/2+1)
+        {
+            Save pred=getpred(idx);
+            Elements[idx]=pred;
+            children[idx]->remove(pred);
+        }
+        else if(children[idx+1]->used>=(order/2+1))
+        {
+            Save succ=getsucc(idx);
+            Elements[idx]=succ;
+            children[idx+1]->remove(succ);
+        }
+        else
+        {
+            merge(idx);
+            children[idx]->remove(k);
+        }
+        return;
+    }
+    Save getpred(size_t idx)
+    {
+        B_Tree_Node *cur=children[idx];
+        while(!cur->isleaf)
+        {
+            cur=cur->children[cur->used];
+        }
+        return cur->Elements[cur->used-1];
+    }
+    Save getsucc(size_t idx)
+    {
+        B_Tree_Node *cur=children[idx+1];
+        while(!cur->isleaf)
+        {
+            cur=cur->children[0];
+        }
+        return cur->Elements[0];
+    }
+    void fill(size_t idx)
+    {
+        if(idx!=0&&children[idx-1]->used>=(order/2+1))
+        {
+            borrowFromPrev(idx);
+        }
+        else if(idx!=used&&children[idx+1]->used>=(order/2+1))
+        {
+            borrowFromNext(idx);
+        }
+        else
+        {
+            if(idx!=used)
+            {
+                merge(idx);
+            }
+            else
+            {
+                merge(idx-1);
+            }
+        }
+        return;
+    }
 };
 template <typename Save>
 class B_Tree
 {
     public:
-    B_Tree(size_t num=2):order(num),root(nullptr)
+    B_Tree(size_t num=2,ostream &ou=cout):order(num),root(nullptr),out(ou)
     {
     }
     void insert(Save element)
@@ -181,5 +304,6 @@ class B_Tree
     }
     B_Tree_Node<Save> *root;
     size_t order;
+    ostream &out;
 };
 #endif
