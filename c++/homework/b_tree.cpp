@@ -232,6 +232,85 @@ struct B_Tree_Node
         }
         return;
     }
+    void borrowFromPrev(size_t idx)
+    {
+        B_Tree_Node *child=children[idx];
+        B_Tree_Node *sibling=children[idx-1];
+        for(int i=child->used-1;i>=0;--i)
+        {
+            child->Elements[i+1]=child->Elements[i];
+        }
+        if(!child->isleaf)
+        {
+            for(int i=child->used;i>=0;--i)
+            {
+                child->children[i+1]=child->children[i];
+            }
+        }
+        child->Elements[0]=Elements[idx-1];
+        if(!isleaf)
+        {
+            child->children[0]=sibling->children[sibling->used];
+        }
+        Elements[idx-1]=sibling->Elements[sibling->used-1];
+        child->used++;
+        sibling->used--;
+        return;
+    }
+    void borrowFromNext(size_t idx)
+    {
+        B_Tree_Node *child=children[idx];
+        B_Tree_Node *sibling=children[idx+1];
+        child->Elements[child->used]=Elements[idx];
+        if(!(child->isleaf))
+        {
+            child->children[child->used+1]=sibling->children[0];
+        }
+        Elements[idx]=sibling->Elements[0];
+        for(int i=1;i<sibling->used;++i)
+        {
+            sibling->Elements[i-1]=sibling->Elements[i];
+        }
+        if(!sibling->isleaf)
+        {
+            for(int i=1;i<=sibling->used;++i)
+            {
+                sibling->children[i-1]=sibling->children[i];
+            }
+        }
+        child->used++;
+        sibling->used--;
+        return;
+    }
+    void merge(size_t idx)
+    {
+        B_Tree_Node *child=children[idx];
+        B_Tree_Node *sibling=children[idx+1];
+        child->Elements[order/2]=Elements[idx];
+        for(int i=0;i<sibling->used;++i)
+        {
+            child->Elements[i+order/2+1]=sibling->Elements[i];
+        }
+        if(!child->isleaf)
+        {
+            for(int i=0;i<=sibling->used;++i)
+            {
+                child->children[i+order/2+1]=sibling->children[i];
+            }
+        }
+        for(int i=idx+1;i<n;++i)
+        {
+            Elements[i-1]=Elements[i];
+        }
+        for(int i=idx+2;i<=n;++i)
+        {
+            children[i-1]=children[i];
+        }
+        child->used+=sibling->used+1;
+        --used;
+        delete sibling;
+        return;
+    }
 };
 template <typename Save>
 class B_Tree
@@ -282,6 +361,29 @@ class B_Tree
         {
             divide(toinsert);
         }*/
+    }
+    void remove(Save k)
+    {
+        if(!root)
+        {
+            out<<"The Tree is empty"<<endl;
+            return;
+        }
+        root->remove(k);
+        if(root->used==0)
+        {
+            B_Tree_Node *tmp=root;
+            if(root->isleaf)
+            {
+                root=nullptr;
+            }
+            else
+            {
+                root=root->children[0];
+            }
+            delete tmp;
+        }
+        return;
     }
     private:
     bool divide(B_Tree_Node<Save> *div)
