@@ -8,6 +8,7 @@
 #include<iomanip>
 using std::ostream;
 using std::cout;
+using std::cin;
 using std::endl;
 using std::setw;
 using std::vector;
@@ -23,8 +24,8 @@ struct B_Tree_Node
     ostream &out;
     B_Tree_Node(size_t num=2,bool leaf=true,B_Tree_Node *parent=nullptr,ostream &ou=cout):father(parent),isleaf(leaf),used(0),order(num),out(ou)
     {
-        Elements.resize(order);
-        children.resize(order+1);
+        Elements.resize(order+1);
+        children.resize(order+2);
         for(int i=0;i<children.size();++i)
         {
             children[i]=nullptr;
@@ -94,7 +95,7 @@ struct B_Tree_Node
                 Elements[i+1]=Elements[i];
                 --i;
             }
-            Elements[i+1]=k;
+            Elements[i+1]=element;
             ++used;
         }
         else
@@ -103,7 +104,8 @@ struct B_Tree_Node
             {
                 --i;
             }
-            if(children[i+1]->used==order)
+            children[i+1]->insertNonFull(element);
+            if(children[i+1]->used>order)
             {
                 splitChild(i+1,children[i+1]);
                 if(Elements[i+1]<element)
@@ -111,7 +113,6 @@ struct B_Tree_Node
                     ++i;
                 }
             }
-            children[i+1]->insertNonFull(k);
         }
     }
     size_t findKey(Save k)
@@ -126,7 +127,7 @@ struct B_Tree_Node
     void remove(Save k)
     {
         size_t idx=findKey(k);
-        if(idx<n&&Elements[idx]==k)
+        if(idx<used&&Elements[idx]==k)
         {
             if(isleaf)
             {
@@ -149,7 +150,7 @@ struct B_Tree_Node
             {
                 fill(idx);
             }
-            if(flag&&idx>n)
+            if(flag&&idx>used)
             {
                 children[idx-1]->remove(k);
             }
@@ -162,7 +163,7 @@ struct B_Tree_Node
     }
     void removeFromLeaf(size_t idx)
     {
-        for(size_t i=idx+1;i<n;++i)
+        for(size_t i=idx+1;i<used;++i)
         {
             Elements[i-1]=Elements[i];
         }
@@ -298,11 +299,11 @@ struct B_Tree_Node
                 child->children[i+order/2+1]=sibling->children[i];
             }
         }
-        for(int i=idx+1;i<n;++i)
+        for(int i=idx+1;i<used;++i)
         {
             Elements[i-1]=Elements[i];
         }
-        for(int i=idx+2;i<=n;++i)
+        for(int i=idx+2;i<=used;++i)
         {
             children[i-1]=children[i];
         }
@@ -310,6 +311,47 @@ struct B_Tree_Node
         --used;
         delete sibling;
         return;
+    }
+    bool search(Save k)
+    {
+        size_t num=0;
+        while(num<used&&Elements[num]<k)
+        {
+            ++num;
+        }
+        if(Elements[num]==k)
+        {
+            return true;
+        }
+        else
+        {
+            if(isleaf)
+            {
+                return false;
+            }
+            else
+            {
+                return children[num]->search(k);
+            }
+        }
+    }
+    void print()
+    {
+        out<<"<";
+        for(int i=1;i<=used;++i)
+        {
+            out<<Elements[i-1]<<(i==used?'>':',');
+        }
+        out<<"(";
+        for(int i=0;i<=used;++i)
+        {
+            if(children[i]!=nullptr)
+            {
+                children[i]->print();
+                out<<(i==used?'\0':',');
+            }
+        }
+        out<<")";
     }
 };
 template <typename Save>
@@ -323,28 +365,29 @@ class B_Tree
     {
         if(root==nullptr)
         {
-            root=new B_Tree_Node<Save>(order,true);
+            root=new B_Tree_Node<Save>(order,true,nullptr,out);
             root->Elements[0]=element;
             root->used++;
         }
         else
         {
-            if(root->used==order)
+            root->insertNonFull(element);
+            if(root->used>order)
             {
-                B_Tree_Node<Save> *grow=new B_Tree_Node(order,false);
+                B_Tree_Node<Save> *grow=new B_Tree_Node<Save>(order,false,nullptr,out);
                 grow->children[0]=root;
-                grow->splitChild(0,root);
                 int i=0;
-                if(grow->Elements[0]<element)
+                /*if(grow->Elements[0]<element)
                 {
                     ++i;
-                }
-                grow->children[i]->insertNonFull(element);
+                }*/
+                //grow->children[i]->insertNonFull(element);
+                grow->splitChild(0,root);                
                 root=grow;
             }
             else
             {
-                root->insertNonFull(element);
+                //root->insertNonFull(element);
             }
         }
         /*B_Tree_Node<Save> *toinsert=root;
@@ -372,7 +415,7 @@ class B_Tree
         root->remove(k);
         if(root->used==0)
         {
-            B_Tree_Node *tmp=root;
+            B_Tree_Node<Save> *tmp=root;
             if(root->isleaf)
             {
                 root=nullptr;
@@ -384,6 +427,18 @@ class B_Tree
             delete tmp;
         }
         return;
+    }
+    bool sraech(Save k)
+    {
+        return root->search(k);
+    }
+    void print()
+    {
+        if(root!=nullptr)
+        {
+            root->print();
+        }
+        out<<endl;
     }
     private:
     bool divide(B_Tree_Node<Save> *div)
@@ -408,4 +463,23 @@ class B_Tree
     size_t order;
     ostream &out;
 };
+int main()
+{
+    int n,order;
+    cin>>n>>order;
+    B_Tree<int> tree(order,cout);
+    for(int i=0;i<n;++i)
+    {
+        int tmp;
+        cin>>tmp;
+        tree.insert(tmp);
+        tree.print();
+    }
+    /*for(int i=0;i<n;++i)
+    {
+        tree.remove(i);
+        tree.print();
+    }*/
+    return 0;
+}
 #endif
