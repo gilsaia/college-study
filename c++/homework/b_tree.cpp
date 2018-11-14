@@ -6,6 +6,12 @@
 #include<fstream>
 #include<algorithm>
 #include<iomanip>
+#include<sstream>
+using std::fstream;
+using std::ofstream;
+using std::ifstream;
+using std::ostringstream;
+using std::istringstream;
 using std::ostream;
 using std::cout;
 using std::cin;
@@ -13,6 +19,9 @@ using std::endl;
 using std::setw;
 using std::vector;
 using std::move;
+using std::string;
+using std::getline;
+using std::setw;
 template <typename Save>
 struct B_Tree_Node
 {
@@ -33,7 +42,7 @@ struct B_Tree_Node
     }
     void splitChild(int i,B_Tree_Node *y)
     {
-        B_Tree_Node *change=new B_Tree_Node(y->order,y->isleaf);
+        B_Tree_Node *change=new B_Tree_Node(y->order,y->isleaf,nullptr,out);
         change->used=order/2;
         for(int j=0;j<order/2;++j)
         {
@@ -146,17 +155,32 @@ struct B_Tree_Node
                 return;
             }
             bool flag=((idx==used)?true:false);
-            if(children[idx]->used<order/2+1)
+            if(order==2)
+            {
+                if(children[idx]->used<=1)
+                {
+                    fill(idx);
+                }
+            }
+            else if(children[idx]->used<order/2+1)
             {
                 fill(idx);
             }
             if(flag&&idx>used)
             {
                 children[idx-1]->remove(k);
+                if(children[idx-1]->used>order)
+                {
+                    splitChild(idx-1,children[idx-1]);
+                }
             }
             else
             {
                 children[idx]->remove(k);
+                if(children[idx]->used>order)
+                {
+                    splitChild(idx,children[idx]);
+                }
             }
         }
         return;
@@ -348,10 +372,28 @@ struct B_Tree_Node
             if(children[i]!=nullptr)
             {
                 children[i]->print();
-                out<<(i==used?'\0':',');
+                if(i!=used)
+                {
+                    out<<',';
+                }
             }
         }
         out<<")";
+    }
+    void print(int space)
+    {
+        for(int i=0;i<used;++i)
+        {
+            if(children[i]!=nullptr)
+            {
+                children[i]->print(space+5);
+            }
+            out<<setw(space)<<Elements[i]<<endl;
+        }
+        if(children[used]!=nullptr)
+        {
+            children[used]->print(space+5);
+        }
     }
 };
 template <typename Save>
@@ -426,6 +468,19 @@ class B_Tree
             }
             delete tmp;
         }
+        if(root!=nullptr&&root->used>order)
+            {
+                B_Tree_Node<Save> *grow=new B_Tree_Node<Save>(order,false,nullptr,out);
+                grow->children[0]=root;
+                int i=0;
+                /*if(grow->Elements[0]<element)
+                {
+                    ++i;
+                }*/
+                //grow->children[i]->insertNonFull(element);
+                grow->splitChild(0,root);                
+                root=grow;
+            }
         return;
     }
     bool sraech(Save k)
@@ -434,11 +489,12 @@ class B_Tree
     }
     void print()
     {
+        out<<"Condition start:"<<endl;
         if(root!=nullptr)
         {
-            root->print();
+            root->print(1);
         }
-        out<<endl;
+        out<<"Condition end"<<endl;
     }
     private:
     bool divide(B_Tree_Node<Save> *div)
@@ -466,20 +522,110 @@ class B_Tree
 int main()
 {
     int n,order;
-    cin>>n>>order;
-    B_Tree<int> tree(order,cout);
-    for(int i=0;i<n;++i)
+    ifstream in("G:\\cs\\coding\\c++\\homework\\b_treeinput.txt");
+    ofstream out("G:\\cs\\coding\\c++\\homework\\b_treeoutput.txt");
+    in>>n>>order;
+    B_Tree<int> tree(order,out);
+    int num=0;
+    string line;
+    while(num<n)
     {
+        getline(in,line);
+        istringstream input(line);
         int tmp;
-        cin>>tmp;
-        tree.insert(tmp);
-        tree.print();
+        while(num<n&&input>>tmp)
+        {
+            if(num<n-1)
+            {
+                char sign;
+                input>>sign;
+            }
+            num++;
+            tree.insert(tmp);
+        }
     }
-    /*for(int i=0;i<n;++i)
+    tree.print();
+    while(getline(in,line))
     {
-        tree.remove(i);
-        tree.print();
-    }*/
+        istringstream input(line);
+        string opera;
+        input>>opera;
+        if(opera[0]=='I')
+        {
+            int tmp;
+            input>>tmp;
+            if(tree.sraech(tmp))
+            {
+                out<<"It has been inserted"<<endl;
+            }
+            else
+            {
+                tree.insert(tmp);
+                tree.print();
+            }
+        }
+        else if(opera[0]=='D')
+        {
+            int tmp;
+            input>>tmp;
+            if(tree.sraech(tmp))
+            {
+                tree.remove(tmp);
+                tree.print();
+            }
+            else
+            {
+                out<<"There is no exist the element"<<endl;
+            }
+        }
+        else
+        {
+            if(opera[1]=='I')
+            {
+                int tmp;
+                while(input>>tmp)
+                {
+                    if(tree.sraech(tmp))
+                    {
+                        out<<"It has been inserted"<<endl;
+                    }
+                    else
+                    {
+                        tree.insert(tmp);
+                        tree.print();
+                    }
+                    char sign;
+                    input>>sign;
+                    if(sign=='#')
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                int tmp;
+                while(input>>tmp)
+                {
+                    if(tree.sraech(tmp))
+                    {
+                        tree.remove(tmp);
+                        tree.print();
+                    }
+                    else
+                    {
+                        out<<"There is no exist the element"<<endl;
+                    }
+                    char sign;
+                    input>>sign;
+                    if(sign=='#')
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
     return 0;
 }
 #endif
