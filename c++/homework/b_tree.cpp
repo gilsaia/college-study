@@ -525,7 +525,7 @@ int main()
     ifstream in("G:\\cs\\coding\\c++\\homework\\b_treeinput.txt");
     ofstream out("G:\\cs\\coding\\c++\\homework\\b_treeoutput.txt");
     in>>n>>order;
-    B_Tree<int> tree(order,out);
+    B_Tree<int> tree(order-1,out);
     int num=0;
     string line;
     while(num<n)
