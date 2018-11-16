@@ -394,6 +394,7 @@ struct B_Tree_Node
         {
             children[used]->print(space+5);
         }
+        out<<endl;
     }
 };
 template <typename Save>
