@@ -39,7 +39,7 @@ bool onedge(int n,int i)
 class melt
 {
     public:
-    melt(int size,istream &get=cin,ostream &put=cout):n(size),in(get),out(put),startx(-1),starty(-1),maxtime(0)
+    melt(int size,istream &get=cin,ostream &put=cout):n(size),in(get),out(put),maxtime(0)
     {
         map.resize(n*n);
         par.resize(n*n);
@@ -47,10 +47,10 @@ class melt
         for(int i=0;i<n*n;++i)
         {
             in>>map[i];
-            if(startx==-1&&map[i]=='_'&&onedge(n,i))
+            if(map[i]=='_'&&onedge(n,i))
             {
-                startx=i/n;
-                starty=i%n;
+                startx.push_back(i/n);
+                starty.push_back(i%n);
             }
             used[i]=0;
         }
@@ -59,13 +59,16 @@ class melt
     }
     bool startcondition()
     {
-        if(startx==-1&&starty==-1)
+        if(startx.empty())
         {
             return false;
         }
-        map[startx*n+starty]='0';
-        used[startx*n+starty]=-1;
-        fond(startx,starty,0);
+        for(int i=0;i<startx.size();++i)
+        {
+            map[startx[i]*n+starty[i]]='0';
+            used[startx[i]*n+starty[i]]=-1;
+            fond(startx[i],starty[i],0);
+        }
         return true;
     }
     void solve()
@@ -107,7 +110,7 @@ class melt
     ostream &out;
     istream &in;
     vector<char> map;
-    vector<int> par,used;
+    vector<int> par,used,startx,starty;
     queue<font> tomelt;
     void fond(int x,int y,int nowtime)
     { 
@@ -136,7 +139,7 @@ class melt
             }
         }
     }
-    int n,startx,starty,dx[4],dy[4],maxtime;
+    int n,dx[4],dy[4],maxtime;
 };
 int main()
 {
