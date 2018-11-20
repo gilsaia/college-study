@@ -4,6 +4,13 @@
 #include<vector>
 #include<map>
 #include<queue>
+#include<string>
+#include<iomanip>
+#include<sstream>
+using std::istringstream;
+using std::ostringstream;
+using std::setw;
+using std::string;
 using std::cin;
 using std::cout;
 using std::fstream;
@@ -46,8 +53,10 @@ class melt
         used.resize(n*n);
         for(int i=0;i<n*n;++i)
         {
-            in>>map[i];
-            if(map[i]=='_'&&onedge(n,i))
+            char tmp;
+            in>>tmp;
+            map[i]+=tmp;
+            if(map[i][0]=='_'&&onedge(n,i))
             {
                 startx.push_back(i/n);
                 starty.push_back(i%n);
@@ -78,7 +87,7 @@ class melt
         {
             for(int j=0;j<n;++j)
             {
-                out<<map[i*n+j];
+                out<<setw(3)<<map[i*n+j];
             }
             out<<endl;
         }
@@ -92,7 +101,9 @@ class melt
         {
             font tmp=tomelt.front();
             tomelt.pop();
-            map[tmp.num]='0'+tmp.time;
+            ostringstream outnum;
+            outnum<<tmp.time;
+            map[tmp.num]=outnum.str();
             maxtime=max(maxtime,tmp.time);
             fond(tmp.num/n,tmp.num%n,tmp.time);
         }
@@ -101,7 +112,7 @@ class melt
         {
             for(int j=0;j<n;++j)
             {
-                out<<map[i*n+j];
+                out<<setw(3)<<map[i*n+j];
             }
             out<<endl;
         }
@@ -109,7 +120,7 @@ class melt
     private:
     ostream &out;
     istream &in;
-    vector<char> map;
+    vector<string> map;
     vector<int> par,used,startx,starty;
     queue<font> tomelt;
     void fond(int x,int y,int nowtime)
@@ -119,13 +130,15 @@ class melt
             int tx=x+dx[i],ty=y+dy[i];
             if(tx>=0&&tx<n&&ty>=0&&ty<n)
             {
-                if(map[tx*n+ty]=='_'&&used[tx*n+ty]!=-1)
+                if(map[tx*n+ty][0]=='_'&&used[tx*n+ty]!=-1)
                 {
-                    map[tx*n+ty]='0'+nowtime;
+                    ostringstream outnum;
+                    outnum<<nowtime;
+                    map[tx*n+ty]=outnum.str();
                     used[tx*n+ty]=-1;
                     fond(tx,ty,nowtime);
                 }
-                else if(map[tx*n+ty]=='#')
+                else if(map[tx*n+ty][0]=='#')
                 {
                     if(++used[tx*n+ty]==2)
                     {
