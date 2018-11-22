@@ -13,6 +13,7 @@ using std::endl;
 using std::setw;
 using std::vector;
 using std::max;
+using std::sort;
 class changeMatrix
 {
 public:
@@ -34,9 +35,7 @@ public:
                 {
                     nowzeronum++;
                 }
-                nowline.push_back(tmp);
             }
-            map.push_back(nowline);
             zeronum.push_back(nowzeronum);
             condition.push_back(nowconditinon);
         }
@@ -49,18 +48,45 @@ public:
             {
                 if(zeronum[i]<=time&&zeronum[i]%2)
                 {
-                    candoline.push_back(i);
+                    candoline.push_back(condition[i]);
                 }
             }
             else
             {
                 if(zeronum[i]<=time&&zeronum[i]%2==0)
                 {
-                    candoline.push_back(i);
+                    candoline.push_back(condition[i]);
                 }
             }
         }
-        while(time>0)
+        sort(candoline.begin(),candoline.end());
+        if(!candoline.empty())
+        {
+            int anstmp=1,lastcondition=candoline[0];
+            for(int i=1;i<candoline.size();++i)
+            {
+                if(candoline[i]==lastcondition)
+                {
+                    anstmp++;
+                }
+                else
+                {
+                    if(anstmp>ans)
+                    {
+                        ans=anstmp;
+                        anscondition=lastcondition;
+                    }
+                    anstmp=1;
+                    lastcondition=candoline[i];
+                }
+            }
+            if(anstmp>ans)
+            {
+                ans=anstmp;
+                anscondition=lastcondition;
+            }
+        }
+        /*while(time>0)
         {
             int comb=(1<<time)-1;
             while(comb<1<<col)
@@ -99,13 +125,13 @@ public:
                 ans=anstmp;
                 anscondition=0;
             }
-        }
+        }*/
         out<<"The max possible number is "<<ans<<endl;
         out<<"To achieve this,need to change";
         int num=col,outcondition=anscondition;
-        while(outcondition)
+        while(num>0)
         {
-            if(outcondition&1)
+            if(!(outcondition&1))
             {
                 out<<" "<<num;
             }
@@ -115,7 +141,6 @@ public:
         out<<" row"<<endl;
     }
 private:
-    vector<vector<int>> map;
     vector<int> zeronum,condition;
     istream &in;
     ostream &out;
