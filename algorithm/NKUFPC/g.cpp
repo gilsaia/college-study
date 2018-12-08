@@ -1,39 +1,43 @@
 #include<cstdio>
 #include<algorithm>
 #include<vector>
-//#include<iostream>
 #include<queue>
-#include<utility>
-//#include<cstring>
 using namespace std;
-const int INF=1e9+9;
 vector<int> G[100020];
-//int Ge[200020],extra[200020];
 int tim[100020],sumtime[100020];
 bool isleaf[100020];
+inline int max(const int &a,const int &b)
+{
+    return a>b?a:b;
+}
+/*nline int read()
+{
+    int x=0,f=1;char c=getchar();
+    while(c<'0'||c>'9'){if(c=='-')f=-1;c=getchar();}
+    while(c>='0'&&c<='9'){x=x*10+c-'0';c=getchar();}
+    return x*f;
+}*/
 int main()
 {
     int n,m;
+    /*n=read();
+    m=read();*/
     scanf("%d%d",&n,&m);
-    int extranum=n+1;
     for(int i=1;i<=n;++i)
     {
+        //tim[i]=read();
         scanf("%d",&tim[i]);
     }
     for(int i=0;i<m;++i)
     {
         int a,b;
+        /*a=read();
+        b=read();*/
         scanf("%d%d",&a,&b);
-        /*while(Ge[b]!=0)
-        {
-            b=Ge[b];
-        }
-        Ge[b]=extranum;
-        extra[extranum++]=a;*/
         G[b].push_back(a);
-        isleaf[a]=true;
+        isleaf[a]=1;
     }
-    queue<pair<int,int>> que;
+    queue<int> que;
     int ans=0;
     for(int i=1;i<=n;++i)
     {
@@ -41,24 +45,11 @@ int main()
         {
             ans=max(ans,tim[i]);
             sumtime[i]=tim[i];
-            /*int tmpnum=i;
-            while(Ge[tmpnum]!=0)
-            {
-                int biao=extra[Ge[tmpnum]];
-                if(isleaf[biao]||sumtime[biao]<(sumtime[i]+tim[biao]))
-                {
-                    que.push(make_pair(extra[Ge[tmpnum]],sumtime[i]));
-                    sumtime[biao]=sumtime[i]+tim[biao];
-                    isleaf[biao]=false;
-                }
-                //que.push(make_pair(extra[Ge[tmpnum]],tim[i]));
-                tmpnum=Ge[tmpnum];
-            }*/
             for(int j=0;j<G[i].size();++j)
             {
                 if(sumtime[G[i][j]]<(sumtime[i]+tim[G[i][j]]))
                 {
-                    que.push(make_pair(G[i][j],tim[i]));
+                    que.push(G[i][j]);
                     sumtime[G[i][j]]=sumtime[i]+tim[G[i][j]];
                     ans=max(ans,sumtime[G[i][j]]);
                 }
@@ -67,29 +58,15 @@ int main()
     }
     while(!que.empty())
     {
-        pair<int,int> tmp=que.front();
+        int tmp=que.front();
         que.pop();
-        /*sumtime[tmp.first]=max(sumtime[tmp.first],tmp.second+=tim[tmp.first]);
-        ans=max(ans,sumtime[tmp.first]);*/
-        /*int tmpnum=tmp.first;
-        while(Ge[tmpnum]!=0)
+        for(int j=0;j<G[tmp].size();++j)
         {
-            int biao=extra[Ge[tmpnum]];
-            if(isleaf[biao]||sumtime[biao]<(sumtime[tmp.first]+tim[biao]))
+            if(sumtime[G[tmp][j]]<(sumtime[tmp]+tim[G[tmp][j]]))
             {
-                que.push(make_pair(extra[Ge[tmpnum]],sumtime[tmp.first]));
-                sumtime[biao]=sumtime[tmp.first]+tim[biao];
-                isleaf[biao]=false;
-            }
-            tmpnum=Ge[tmpnum];
-        }*/
-        for(int j=0;j<G[tmp.first].size();++j)
-        {
-            if(sumtime[G[tmp.first][j]]<(sumtime[tmp.first]+tim[G[tmp.first][j]]))
-            {
-                que.push(make_pair(G[tmp.first][j],sumtime[tmp.first]));
-                sumtime[G[tmp.first][j]]=sumtime[tmp.first]+tim[G[tmp.first][j]];
-                ans=max(ans,sumtime[G[tmp.first][j]]);
+                que.push(G[tmp][j]);
+                sumtime[G[tmp][j]]=sumtime[tmp]+tim[G[tmp][j]];
+                ans=max(ans,sumtime[G[tmp][j]]);
             }
         }
     }
