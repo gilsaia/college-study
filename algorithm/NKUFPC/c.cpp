@@ -3,80 +3,81 @@
 #include<cstdio>
 #include<stdio.h>
 using namespace std;
-long long save[3050][3050];
+long long summatrix[4050][4050];
 int main()
 {
     int N,M;
-    cin>>N>>M;
-    for(int i=0;i<N;++i)
+    scanf("%d%d",&N,&M);
+    for(int i=1;i<=N;++i)
     {
-        for(int j=0;j<M;++j)
+        for(int j=1;j<=M;++j)
         {
-            cin>>save[i][j];
+            long long  tmp;
+            scanf("%lld",&tmp);
+            summatrix[i][j]=summatrix[i][j-1]+tmp;
+            summatrix[i][j-1]+=summatrix[i-1][j-1];
         }
+        summatrix[i][M]+=summatrix[i-1][M];
     }
     int k1,k2;
-    cin>>k1>>k2;
+    scanf("%d%d",&k1,&k2);
     long long ans=0;
-    long long tmpe=0;
-    for(int i=0;i<k1;++i)
+    for(int i=1;i<=k1;++i)
     {
-        for(int j=0;j<k2;++j)
+        for(int j=1;j<=k2;++j)
         {
-            tmpe+=save[i][j];
-        }
-    }
-    ans=max(ans,tmpe);
-    long long laststart=ans;
-    for(int i=k1;i<N+k1;++i)
-    {
-        long long tmpans=laststart;
-        for(int j=k2;j<M+k2;++j)
-        {
-            for(int t=i-1;t>=i-k1;--t)
+           ans=max(ans,summatrix[i][j]);
+           if(j<=M)
+           {
+                long long rightup=summatrix[i][M]-summatrix[i][M-j];
+                ans=max(ans,rightup);
+           }
+            if(i<=N)
             {
-                tmpans-=save[t][j-k2];
-                tmpans+=save[t][j];
+                long long leftdown=summatrix[N][j]-summatrix[N-i][j];
+                ans=max(ans,leftdown);
             }
-            ans=max(ans,tmpans);
-        }
-        for(int t=k2-1;t>=0;--t)
-        {
-            laststart-=save[i-k1][t];
-            laststart+=save[i][t];
-        }
-        ans=max(ans,laststart);
-    }
-    swap(k1,k2);
-    tmpe=0;
-    for(int i=0;i<k1;++i)
-    {
-        for(int j=0;j<k2;++j)
-        {
-            tmpe+=save[i][j];
-        }
-    }
-    ans=max(ans,tmpe);
-    laststart=tmpe;
-    for(int i=k1;i<N+k1;++i)
-    {
-        long long tmpans=laststart;
-        for(int j=k2;j<M+k2;++j)
-        {
-            for(int t=i-1;t>=i-k1;--t)
+            if(j<=M&&i<=N)
             {
-                tmpans-=save[t][j-k2];
-                tmpans+=save[t][j];
+                long long rightdown=summatrix[N][M]-summatrix[N][M-j]-summatrix[N-i][M]+summatrix[N-i][M-j];
+                ans=max(ans,rightdown);
             }
-            ans=max(ans,tmpans);
         }
-        for(int t=k2-1;t>=0;--t)
-        {
-            laststart-=save[i-k1][t];
-            laststart+=save[i][t];
-        }
-        ans=max(ans,laststart);
     }
-    cout<<ans<<endl;
+    for(int i=k1;i<=N;++i)
+    {
+        for(int j=k2;j<=M;++j)
+        {
+            long long tmp=summatrix[i][j]-summatrix[i][j-k2]-summatrix[i-k1][j]+summatrix[i-k1][j-k2];
+            ans=max(ans,tmp);
+        }
+    }
+    for(int i=k1;i<=N;++i)
+    {
+        for(int j=1;j<=k2;++j)
+        {
+            long long tmp=summatrix[i][j]-summatrix[i-k1][j];
+            ans=max(ans,tmp);
+            if(j<=M)
+            {
+                long long right=summatrix[i][M]-summatrix[i][M-j]-summatrix[i-k1][M]+summatrix[i-k1][M-j];
+                ans=max(ans,right);
+            }
+        }
+    }
+    for(int j=k2;j<=M;++j)
+    {
+        for(int i=1;i<=k1;++i)
+        {
+            long long tmp=summatrix[i][j]-summatrix[i][j-k2];
+            ans=max(ans,tmp);
+            if(i<=N)
+            {
+                long long down=summatrix[N][j]-summatrix[N][j-k2]-summatrix[N-i][j]+summatrix[N-i][j-k2];
+                ans=max(ans,down);
+            }
+        }
+    }
+    printf("%lld\n",ans);
     return 0;
 }
