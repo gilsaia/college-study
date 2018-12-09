@@ -39,32 +39,55 @@ ll mod_pow(ll x,ll n,ll mod)
     }
     return res;
 }
-struct tosort
+ll am[100020];
+bool cmp(ll a,ll b)
 {
-    ll cmp;
-    ll num;
-}element[100020];
-bool cmp(tosort a,tosort b)
-{
-    return a.cmp<b.cmp;
+    if(a>=0&&b>=0)
+    {
+        return a<b;
+    }
+    else if(a>=0&&b<0)
+    {
+        ll tmp=-b;
+        if(tmp!=a)
+        {
+            return a<tmp;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else if(a<0&&b>=0)
+    {
+        ll tmp=-a;
+        if(tmp!=b)
+        {
+            return tmp<b;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    else
+    {
+        return (-a)<(-b);
+    }
 }
-ll am[100020],bm[100020];
 int main()
 {
     int n,m;
     cin>>n>>m;
     for(int i=0;i<m;++i)
     {
-        cin>>bm[i];
-        ll tmp=bm[i]*bm[i];
-        element[i].cmp=tmp+bm[i];
-        element[i].num=i;
+        cin>>am[i];
     }
-    sort(element,element+m,cmp);
-    for(int i=0;i<m;++i)
+    sort(am,am+m,cmp);
+    /*for(int i=0;i<m;++i)
     {
-        am[i]=bm[element[i].num];
-    }
+        cout<<am[i]<<" ";
+    }*/
     for(int i=0;i<m;++i)
     {
         ll tmp;
@@ -73,8 +96,17 @@ int main()
             tmp=(mod_pow(am[i],n,MOD)-1+MOD)%MOD;
             tmp*=am[i];
             tmp%=MOD;
-            ll rever=mod_inverse(am[i]-1,MOD);
-            tmp=(tmp*rever)%MOD;
+            if(am[i]<0)
+            {
+                ll torev=-am[i]+1;
+                ll rever=mod_inverse(torev,MOD);
+                tmp=(tmp*rever*-1)%MOD;
+            }
+            else
+            {
+                ll rever=mod_inverse(am[i]-1,MOD);
+                tmp=(tmp*rever)%MOD;
+            }
         }
         else
         {

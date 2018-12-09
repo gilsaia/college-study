@@ -1,5 +1,6 @@
 #include<algorithm>
 #include<cstdio>
+#include<iostream>
 using namespace std;
 struct position
 {
@@ -8,8 +9,9 @@ struct position
 int main()
 {
     char Te[50];
-    scanf("%s",Te);
-        getchar();
+    //scanf("%s",Te);
+    while(cin>>Te)
+    {
         for(int i=0;i<10;++i)
         {
             for(int j=0;j<10;++j)
@@ -107,5 +109,6 @@ int main()
             }
         }
         printf("%d\n",ans);
+    }
     return 0;
 }
