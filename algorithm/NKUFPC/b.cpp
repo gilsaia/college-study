@@ -3,24 +3,70 @@
 #include<string>
 #include<vector>
 #include<map>
-#include<ctime>
+#include<cmath>
 using namespace std;
-time_t readtime()
+int dayofmonth[15]={0,31,28,31,30,31,30,31,31,30,31,30,31};
+struct tmi
 {
-    tm thistime;
+    int tm_sec;   // seconds after the minute - [0, 60] including leap second
+    int tm_min;   // minutes after the hour - [0, 59]
+    int tm_hour;  // hours since midnight - [0, 23]
+    int tm_mday;  // day of the month - [1, 31]
+    int tm_mon;   // months since January - [0, 11]
+    int tm_year;  // years since 1900
+};
+long long mktime(tmi tm)
+{
+    long long ans=0;
+    ans+=tm.tm_year*31536000;
+    int nowyear=tm.tm_year;
+    if(nowyear>=0)
+    {
+        tm.tm_mday+=(nowyear-1)/4;
+        tm.tm_mday-=(nowyear-1)/100;
+        tm.tm_mday+=(nowyear-1)/400;
+    }
+    else
+    {
+        tm.tm_mday+=(nowyear+1)/4;
+        tm.tm_mday-=(nowyear+1)/100;
+        tm.tm_mday+=(nowyear+1)/400;
+    }
+    bool isrun=0;
+    if((nowyear%4==0&&nowyear%100!=0)||nowyear%400==0)
+    {
+        isrun=true;
+    }
+    if(isrun&&tm.tm_mon>1)
+    {
+        tm.tm_mday++;
+    }
+    for(;tm.tm_mon>0;--tm.tm_mon)
+    {
+        tm.tm_mday+=dayofmonth[tm.tm_mon];
+    }
+    ans+=tm.tm_mday*86400;
+    ans+=tm.tm_hour*3600;
+    ans+=tm.tm_min*60;
+    ans+=tm.tm_sec;
+    return ans;
+}
+long long readtime()
+{
+    tmi thistime;
     char tmp;
     int yeartmp,monthtmp;
     cin>>yeartmp>>tmp>>monthtmp>>tmp>>thistime.tm_mday>>thistime.tm_hour>>tmp>>thistime.tm_min>>tmp>>thistime.tm_sec;
-    yeartmp-=1900,monthtmp-=1;
+    monthtmp-=1;
     thistime.tm_year=yeartmp,thistime.tm_mon=monthtmp;
-    return mktime(&thistime);
+    return mktime(thistime);
 }
-tm starttime;
-time_t start,conend;
+tmi starttime;
+long long start,conend;
 string testcondition[10]={" ","OLE","MLE","PE","RE","TLE","CE","WA","AC","SE"};
 struct problem
 {
-    time_t solvetime;
+    long long solvetime;
     int condition;//1-ole 2-mle 3-pe 4-re 5-tle 6-ce 7-wa 8-ac 9-se
 };
 bool cmppro(problem &a,problem &b)
@@ -50,7 +96,7 @@ bool cmpACMer(ACMer &a,ACMer &b)
 }
 struct thequicksolve
 {
-    time_t solvetime;
+    long long solvetime;
     int sumnum,solvenum;
     vector<string> namelist;
     thequicksolve():sumnum(0),solvenum(0),solvetime(0){}
@@ -62,9 +108,9 @@ int main()
     char tmp;
     int yeartmp,monthtmp;
     cin>>yeartmp>>tmp>>monthtmp>>tmp>>starttime.tm_mday>>starttime.tm_hour>>tmp>>starttime.tm_min>>tmp>>starttime.tm_sec;
-    yeartmp-=1900,monthtmp-=1;
+    monthtmp-=1;
     starttime.tm_year=yeartmp,starttime.tm_mon=monthtmp;
-    start=mktime(&starttime);
+    start=mktime(starttime);
     int hourtmp,mintmp,sectmp;
     cin>>hourtmp>>tmp>>mintmp>>tmp>>sectmp;
     mintmp+=hourtmp*60;
@@ -89,7 +135,7 @@ int main()
         int ct,cl;
         double cm;
         cin>>ct>>cm>>cl>>language;
-        time_t nowtime=readtime();
+        long long nowtime=readtime();
         if(nowtime<start||nowtime>=conend||conditionnum==9)
         {
             continue;
@@ -108,11 +154,15 @@ int main()
         {
             sort(nowrun.problemlist[j].begin(),nowrun.problemlist[j].end(),cmppro);
             bool isac=0;
-            time_t nowpenalty=0;
+            long long nowpenalty=0;
             for(int t=0;t<nowrun.problemlist[j].size();++t)
             {
                 if(!isac)
                 {
+                    if(nowrun.problemlist[j][t].solvetime<start||nowrun.problemlist[j][t].solvetime>=conend||nowrun.problemlist[j][t].condition==9)
+                    {
+                        continue;
+                    }
                     if(nowrun.problemlist[j][t].condition!=8)
                     {
                         nowpenalty+=1200;
@@ -129,6 +179,10 @@ int main()
                 }
                 else
                 {
+                    if(nowrun.problemlist[j][t].solvetime<start||nowrun.problemlist[j][t].solvetime>=conend||nowrun.problemlist[j][t].condition==9)
+                    {
+                        continue;
+                    }
                     if(nowrun.problemlist[j][t].condition!=8)
                     {
                         quicklist[j].sumnum++;
@@ -169,6 +223,10 @@ int main()
         {
             AKlist.push_back(resultlist[i].name);
         }
+        /*if(resultlist[i].solvenum==0)
+        {
+            break;
+        }*/
         cout<<"rank #";
         if(i!=0&&resultlist[i-1].penalty==resultlist[i].penalty)
         {
