@@ -72,6 +72,10 @@ struct problem
 };
 bool cmppro(problem &a,problem &b)
 {
+    if(a.solvetime==b.solvetime)
+    {
+        return a.condition<b.condition;
+    }
     return a.solvetime<b.solvetime;
 }
 struct ACMer
