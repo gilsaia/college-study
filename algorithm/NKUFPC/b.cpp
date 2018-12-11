@@ -5,21 +5,22 @@
 #include<map>
 #include<cmath>
 using namespace std;
+typedef long long ll;
 int dayofmonth[15]={0,31,28,31,30,31,30,31,31,30,31,30,31};
 struct tmi
 {
-    int tm_sec;   // seconds after the minute - [0, 60] including leap second
-    int tm_min;   // minutes after the hour - [0, 59]
-    int tm_hour;  // hours since midnight - [0, 23]
-    int tm_mday;  // day of the month - [1, 31]
-    int tm_mon;   // months since January - [0, 11]
-    int tm_year;  // years since 1900
+    long long tm_sec;   // seconds after the minute - [0, 60] including leap second
+    ll tm_min;   // minutes after the hour - [0, 59]
+    ll tm_hour;  // hours since midnight - [0, 23]
+    ll tm_mday;  // day of the month - [1, 31]
+    ll tm_mon;   // months since January - [0, 11]
+    ll tm_year;  // years since 1900
 };
 long long mktime(tmi tm)
 {
     long long ans=0;
     ans+=tm.tm_year*31536000;
-    int nowyear=tm.tm_year;
+    long long nowyear=tm.tm_year;
     if(nowyear>=0)
     {
         tm.tm_mday+=(nowyear-1)/4;
@@ -55,7 +56,7 @@ long long readtime()
 {
     tmi thistime;
     char tmp;
-    int yeartmp,monthtmp;
+    long long yeartmp,monthtmp;
     cin>>yeartmp>>tmp>>monthtmp>>tmp>>thistime.tm_mday>>thistime.tm_hour>>tmp>>thistime.tm_min>>tmp>>thistime.tm_sec;
     monthtmp-=1;
     thistime.tm_year=yeartmp,thistime.tm_mon=monthtmp;
@@ -77,7 +78,7 @@ struct ACMer
 {
     string name;
     vector<problem> problemlist[15];
-    int penalty;
+    long long penalty;
     int isAK;
     int solvenum;
     ACMer():penalty(0),isAK(1),solvenum(0){}
@@ -106,12 +107,12 @@ int main()
     int N,K;
     cin>>N>>K;
     char tmp;
-    int yeartmp,monthtmp;
+    long long yeartmp,monthtmp;
     cin>>yeartmp>>tmp>>monthtmp>>tmp>>starttime.tm_mday>>starttime.tm_hour>>tmp>>starttime.tm_min>>tmp>>starttime.tm_sec;
     monthtmp-=1;
     starttime.tm_year=yeartmp,starttime.tm_mon=monthtmp;
     start=mktime(starttime);
-    int hourtmp,mintmp,sectmp;
+    long long hourtmp,mintmp,sectmp;
     cin>>hourtmp>>tmp>>mintmp>>tmp>>sectmp;
     mintmp+=hourtmp*60;
     sectmp+=mintmp*60;
@@ -119,7 +120,7 @@ int main()
     map<string,ACMer> thelist;
     for(int i=0;i<N;++i)
     {
-        int schoolnum,nowproblemnum,conditionnum;
+        long long schoolnum,nowproblemnum,conditionnum;
         cin>>schoolnum;
         string nowname,problemnum,nowcondition,language;
         cin>>nowname>>problemnum>>nowcondition;
@@ -132,7 +133,7 @@ int main()
                 break;
             }
         }
-        int ct,cl;
+        long long ct,cl;
         double cm;
         cin>>ct>>cm>>cl>>language;
         long long nowtime=readtime();
@@ -228,7 +229,7 @@ int main()
             break;
         }*/
         cout<<"rank #";
-        if(i!=0&&resultlist[i-1].penalty==resultlist[i].penalty)
+        if(i!=0&&resultlist[i-1].solvenum==resultlist[i].solvenum&&resultlist[i-1].penalty==resultlist[i].penalty)
         {
             cout<<num;   
         }
