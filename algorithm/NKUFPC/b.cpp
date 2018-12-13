@@ -21,18 +21,18 @@ long long mktime(tmi tm)
     long long ans=0;
     ans+=tm.tm_year*31536000;
     long long nowyear=tm.tm_year;
-    if(nowyear>=0)
+    //if(nowyear>=0)
     {
         tm.tm_mday+=(nowyear-1)/4;
         tm.tm_mday-=(nowyear-1)/100;
         tm.tm_mday+=(nowyear-1)/400;
     }
-    else
+    /*else
     {
         tm.tm_mday+=(nowyear+1)/4;
         tm.tm_mday-=(nowyear+1)/100;
         tm.tm_mday+=(nowyear+1)/400;
-    }
+    }*/
     bool isrun=0;
     if((nowyear%4==0&&nowyear%100!=0)||nowyear%400==0)
     {
@@ -58,6 +58,7 @@ long long readtime()
     char tmp;
     long long yeartmp,monthtmp;
     cin>>yeartmp>>tmp>>monthtmp>>tmp>>thistime.tm_mday>>thistime.tm_hour>>tmp>>thistime.tm_min>>tmp>>thistime.tm_sec;
+    thistime.tm_mday--;
     monthtmp-=1;
     thistime.tm_year=yeartmp,thistime.tm_mon=monthtmp;
     return mktime(thistime);
@@ -113,6 +114,7 @@ int main()
     char tmp;
     long long yeartmp,monthtmp;
     cin>>yeartmp>>tmp>>monthtmp>>tmp>>starttime.tm_mday>>starttime.tm_hour>>tmp>>starttime.tm_min>>tmp>>starttime.tm_sec;
+    starttime.tm_mday--;
     monthtmp-=1;
     starttime.tm_year=yeartmp,starttime.tm_mon=monthtmp;
     start=mktime(starttime);
@@ -141,7 +143,7 @@ int main()
         double cm;
         cin>>ct>>cm>>cl>>language;
         long long nowtime=readtime();
-        if(nowtime<start||nowtime>=conend||conditionnum==9)
+        if(nowtime<start||nowtime>=conend)
         {
             continue;
         }
