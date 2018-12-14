@@ -3,7 +3,7 @@
 using namespace std;
 typedef long long ll;
 const ll MOD=1e9+7;
-const ll listsize=1e6;
+const ll listsize=5e5;
 const ll total=1e9;
 int main()
 {
