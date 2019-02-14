@@ -11,3 +11,27 @@
 需要生成对外部类对象的引用，可以用外部类对象的名字后紧跟圆点和this
 
 在拥有外部类对象之前是不可能创建内部类对象的，但是如果创造的是嵌套类（静态内部类），则可以不需要外部类对象的引用
+
+### 10.6
+
+对于下列代码
+```Java
+public class Parvel7{
+    public Contents contents(){
+        return new Contents(){
+            private int i=11;
+            public int value(){return i;}
+        };
+    }
+}
+```
+实际为下列形式的简化
+```Java
+public class Parcel7b{
+    class MyContents implements Contents{
+        private int i=11;
+        public int value(){return i;}
+    }
+    public Contents contents(){return new MyContents();}
+}
+```
