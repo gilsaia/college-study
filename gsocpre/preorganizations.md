@@ -68,3 +68,18 @@ CBMI@UTHSC
     Required skills: Python, Machine learning
     Potential Mentors: Akram Mohammed, Rishikesan kamaleswaran
     Difficulty Rating: Easy
+
+Bazel
+
+    Sandboxing on Windows
+    Description: Bazel on Linux already supports various ways to run actions in a sandbox (linux-sandbox, processwrapper-sandbox). We want to support sandboxing on Windows too.
+
+    Design and implement a way to execute actions in a sandbox on Windows, and integrate it with Bazel.
+
+    We recommend using Microsoft Build Accelerator's example project as the foundation.
+
+    Related issue: https://github.com/bazelbuild/bazel/issues/5136
+
+    Knowledge prerequisite: Experience with C/C++ and Windows API programming. Knowing Java is a plus, knowing Detours or the aforementioned Microsoft Build Accelerator example project and its inner workings is a big plus.
+
+    Mentor: laszlocsomor (at google.com)
