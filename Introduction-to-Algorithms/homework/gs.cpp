@@ -1,9 +1,10 @@
 #include<iostream>
 #include<fstream>
 using namespace std;
-const int MAXN=1e3;
+const int MAXN=40;
 int man[MAXN][MAXN],woman[MAXN][MAXN];
 int manchoose[MAXN],womanchoose[MAXN];
+int res[MAXN];
 void gs(int num,int &sum,int pos)
 {
     for(int i=pos;i<sum;++i)
@@ -28,15 +29,14 @@ void gs(int num,int &sum,int pos)
 }
 int main()
 {
-    ifstream in("in.txt");
-    ofstream out("out.txt");
     int n;
-    in>>n;
+    cin>>n;
     for(int i=0;i<n;++i)
     {
         for(int j=0;j<n;++j)
         {
-            in>>man[i][j];
+            cin>>man[i][j];
+            man[i][j]--;
         }
         womanchoose[i]=-1;
     }
@@ -45,8 +45,8 @@ int main()
         for(int j=0;j<n;++j)
         {
             int pos;
-            in>>pos;
-            woman[i][pos]=j;
+            cin>>pos;
+            woman[i][--pos]=j;
         }
     }
     for(int i=0;i<n;++i)
@@ -55,7 +55,12 @@ int main()
     }
     for(int i=0;i<n;++i)
     {
-        out<<womanchoose[i]<<" "<<i<<endl;
+        res[womanchoose[i]]=i;
     }
+    for(int i=0;i<n;++i)
+    {
+        cout<<++res[i]<<" ";
+    }
+    cout<<endl;
     return 0;
 }
