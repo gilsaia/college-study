@@ -83,3 +83,37 @@ Bazel
     Knowledge prerequisite: Experience with C/C++ and Windows API programming. Knowing Java is a plus, knowing Detours or the aforementioned Microsoft Build Accelerator example project and its inner workings is a big plus.
 
     Mentor: laszlocsomor (at google.com)
+
+
+Dear all,
+
+As you start to explore the dataset and methods, please be sure to read the following papers to get a better idea of what work has already been done:
+
+Deep Learning:
+1. https://www.researchgate.net/publication/322703262_A_robust_deep_convolutional_neural_network_for_the_classification_of_abnormal_cardiac_rhythm_using_varying_length_single_lead_electrocardiogram
+
+2. https://www.researchgate.net/publication/322219344_How_much_data_should_we_collect_A_case_study_in_sepsis_detection_using_deep_learning
+
+Sepsis:
+
+1. https://www.researchgate.net/profile/Vasilios_Papaioannou/publication/258035722_Temperature_multiscale_entropy_analysis_A_promising_marker_for_early_prediction_of_mortality_in_septic_patients
+
+2. https://www.researchgate.net/profile/Rishikesan_Kamaleswaran/publication/330596816_Improving_Prediction_Performance_Using_Hierarchical_Analysis_of_Real-Time_Data_A_Sepsis_Case_Study
+
+3. https://www.researchgate.net/publication/326661039_Applying_Artificial_Intelligence_to_Identify_Physiomarkers_Predicting_Severe_Sepsis_in_the_PICU
+
+Spark and ML:
+
+1. https://www.researchgate.net/publication/324903240_PhysOnline_An_Online_Feature_Extraction_and_Machine_Learning_Pipeline_for_Real-Time_Analysis_of_Streaming_Physiological_Data
+
+Fever: 
+
+1. https://www.researchgate.net/publication/330063912_46_MACHINE_LEARNING_APPLIED_TO_CONTINUOUS_PHYSIOLOGIC_DATA_PREDICTS_FEVER_IN_CRITICALLY_ILL_CHILDREN
+
+For web based applications please review:
+
+1. https://www.researchgate.net/publication/310662904_A_Review_of_Visual_Representations_of_Physiologic_Data
+2. https://www.researchgate.net/publication/304811433_PhysioEx_Visual_Analysis_of_Physiological_Event_Streams
+3. https://www.researchgate.net/publication/311531916_CoRAD_Visual_Analytics_for_Cohort_Analysis
+4. https://www.researchgate.net/publication/281662808_Collaborative_multi-touch_clinical_handover_system_for_the_neonatal_intensive_care_unit
+5. https://www.researchgate.net/publication/263772728_A_Real-Time_Multi-Dimensional_Visualization_Framework_For_Critical_And_Complex_Environments
