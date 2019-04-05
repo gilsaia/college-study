@@ -22,15 +22,19 @@ int main()
         string tmp;
         getline(input,tmp);
     }
+    string theline;
+    getline(input,theline);
+    if(theline.size()<y)
+    {
+        cout<<"failed"<<endl;
+        input.close();
+        output.close();
+        return 0;
+    }
+    int size=theline.size();
+    input.seekg(-1*size-1,ios::cur);
     for(int i=1;i<y;++i)
     {
-        if(input.eof())
-        {
-            cout<<"failed"<<endl;
-            input.close();
-            output.close();
-            return 0;
-        }
         char tmp;
         input.get(tmp);
     }
