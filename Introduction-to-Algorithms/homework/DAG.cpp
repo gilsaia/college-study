@@ -6,9 +6,9 @@ using namespace std;
 const int MAXN=60;
 const int MAXM=3000;
 vector<int> G[MAXN];
-int indegree[MAXN],used[MAXN],nowstack[MAXN];
-
-int dfs(int i,queue<int> &que)
+int indegree[MAXN],used[MAXN],nowstack[MAXN],stanum;
+int sta[MAXN];
+int dfs(int i)
 {
     used[i]=1;
     if(nowstack[i])
@@ -18,13 +18,13 @@ int dfs(int i,queue<int> &que)
     for(int j=0;j<G[i].size();++j)
     {
         nowstack[i]=1;
-        que.push(G[i][j]);
-        int res=dfs(G[i][j],que);
+        sta[stanum++]=G[i][j];
+        int res=dfs(G[i][j]);
         if(res!=0)
         {
             return res;
         }
-        que.pop();
+        --stanum;
         nowstack[i]=0;
     }
     return 0;
@@ -95,30 +95,29 @@ int main()
         return 0;
     }
     int cirstart=0;
-    queue<int> que;
+    stanum=0;
     for(int i=1;i<=n;++i)
     {
         if(used[i]==0)
         {
-            que.push(i);
-            cirstart=dfs(i,que);
+            sta[stanum++]=i;
+            cirstart=dfs(i);
             if(cirstart!=0)
             {
                 break;
             }
-            que.pop();
+            --stanum;
         }
     }
-    while(que.front()!=cirstart)
+    int startnum=0;
+    while(sta[startnum]!=cirstart)
     {
-        que.pop();
+        ++startnum;
     }
-    printf("NO\n%d",que.front());
-    que.pop();
-    while(!que.empty())
+    printf("NO\n%d",sta[startnum++]);
+    while(startnum!=stanum)
     {
-        printf(",%d",que.front());
-        que.pop();
+        printf(",%d",sta[startnum++]);
     }
     printf("\n");
     return 0;
