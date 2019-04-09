@@ -52,6 +52,8 @@
         "xtree": "cpp",
         "sstream": "cpp",
         "stack": "cpp",
-        "iomanip": "cpp"
-    }
+        "iomanip": "cpp",
+        "complex": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
 }
