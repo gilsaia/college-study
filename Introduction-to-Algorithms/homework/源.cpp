@@ -1,121 +1,272 @@
-/*
-题目描述
-要求用分治算法（O(nlogn)复杂度）实现寻找n个点中最邻近点对,输出最近距离的平方。
-其中0<=x<10000,0<=y<10000，（x,y取整数或者小数点后一位）
-点数1<n<=30000.
-
-输入
-第一行表示点的数目n；
-接下来的n行中，每一行依次表示点的x坐标，y坐标。
-
-输出
-输出n个点中最邻近点对距离的平方(小数点后两位)
-
-样例输入
-8
-1 1
-2 2
-4 4
-8 8
-2 2.8
-5 6
-7 9
-11 11
-样例输出
-0.64
-*/
 #include<iostream>
+#include<vector>
+#include<fstream>
 #include<algorithm>
-#include<iomanip>
-#include<cmath>
-using namespace std;
-
-struct point
+#include<string>
+#include<ios>
+using std::vector;
+using std::lower_bound;
+using std::ifstream;
+using std::ofstream;
+using std::endl;
+using std::min;
+using std::max;
+using std::string;
+using std::ios;
+using std::sort;
+using std::cout;
+using std::cin;
+const int N = 100;
+const int D = 1e4;
+int dp[N + 1][D];
+struct word
 {
-	double x, y;
+	int index, difficult, value;
+	string word1;
 };
-bool cmp1(point a, point b)
+vector<int> torecite(vector<int> &S, vector<int> &d, vector<int> &v)
 {
-	if (a.x == b.x)
-		return a.y < b.y;
-	return a.x < b.x;
-}
-bool cmp2(point a, point b)
-{
-	if (a.y == b.y)
-		return a.x < b.x;
-	return a.y < b.y;
-}
-double closest_pair(point * a,int n)
-{
-	if (n ==2)
+	vector<int> **findpath;
+	findpath = new vector<int> * [N + 1];
+	for (int i = 0; i <= N; ++i)
 	{
-		double x = pow(a[0].x - a[1].x, 2);
-		double y = pow(a[0].y - a[1].y, 2);
-		return x + y;
+		findpath[i] = new vector<int>[D];
 	}
-	if (n == 1)
+	for (int i = 0; i <= N; ++i)
 	{
-		return (double)1e9;
-	}
-	if (n % 2 != 0)
-	{
-		n = n - 1;
-	}
-	int Lp = n / 2;
-	point * left = new point[Lp];
-	for (int i = 0; i < Lp; i++)
-	{
-		left[i] = a[i];
-	}
-	point * right = new point[n-Lp];
-	for (int i = Lp; i < n; i++)
-	{
-		right[i-Lp] = a[i];
-	}
-	double o1 = closest_pair(left, Lp);
-	double o2 = closest_pair(right, n-Lp);
-	double o;
-	if (o1 < o2)
-		o = o1;
-	else
-		o = o2;
-	double L = a[Lp].x;
-	int j = 0;
-	point * b = new point[n];
-	for (int i = 0; i < n; i++)
-	{
-		if ((a[i].x <= L + o) && (a[i].x >= L - o))
+		for (int j = 0; j<D; ++j)
 		{
-			b[j] = a[i];
-			j++;
+			dp[i][j] = 0;
 		}
 	}
-	sort(b, b + j, cmp2);
-	for (int i = 0; i < j; i++)
+	for (int i = 0; i<S.size(); ++i)
 	{
-		for (int m = 1; m < 12&&(i+m)<j; m++)
+		for (int j = min(i + 1, N); j>0; --j)
 		{
-			double x = pow(b[i].x - b[i + m].x, 2);
-			double y = pow(b[i].y - b[i + m].y, 2);
-				if (x + y < o)
-					o = x + y;
+			for (int t = D - 1; t >= d[i]; --t)
+			{
+				if ((dp[j - 1][t - d[i]] + v[i])>dp[j][t])
+				{
+					dp[j][t] = dp[j - 1][t - d[i]] + v[i];
+					findpath[j][t].push_back(i);
+				}
+			}
 		}
 	}
-	return o;
+	int ssize = S.size();
+	int num = min(ssize, N);
+	vector<int> index;
+	int maxnum = S.size() + 1, nowdifficult = D - 1;
+	for (int i = 0; i<num; ++i)
+	{
+		auto tofind = lower_bound(findpath[num - i][nowdifficult].begin(), findpath[num - i][nowdifficult].end(), maxnum);
+		--tofind;
+		int tmp = *tofind;
+		index.push_back(S[*tofind]);
+		maxnum = tmp + 1, nowdifficult -= d[tmp];
+	}
+	for (int i = 0; i <= N; ++i)
+		delete[]findpath[i];
+	delete[]findpath;
+	return index;
+}
+const int circle[6] = { 0,1,2,4,7,15 };
+const int cirvalue[6] = { 1,1,1,1,1,1 };
+const int mustrecite = 20;
+void daypro(string filedir[7])
+{
+	ifstream read1(filedir[0]), read2(filedir[1]), read3(filedir[2]), read4(filedir[3]), read5(filedir[4]), read6(filedir[5]), read7(filedir[6]);
+	ofstream write[6];
+	vector<word> store[7];
+	int index = 0;
+	word tmp1;
+	while (!read1.eof())
+	{
+		read1 >> tmp1.word1;
+		read1 >> tmp1.difficult;
+		if (tmp1.difficult == -858993460)
+			break;
+		tmp1.value = 1;
+		tmp1.index = index++;
+		store[0].push_back(tmp1);
+	}
+	word tmp2;
+	while (!read2.eof())
+	{
+		read2 >> tmp2.word1;
+		read2 >> tmp2.difficult;
+		if (tmp2.difficult == -858993460)
+			break;
+		read2 >> tmp2.value;
+		tmp2.index = index++;
+		store[1].push_back(tmp2);
+	}
+	word tmp3;
+	while (!read3.eof())
+	{
+		read3 >> tmp3.word1;
+		read3 >> tmp3.difficult;
+		if (tmp3.difficult == -858993460)
+			break;
+		read3 >> tmp3.value;
+		tmp3.index = index++;
+		store[2].push_back(tmp3);
+	}
+	word tmp4;
+	while (!read4.eof())
+	{
+		read4 >> tmp4.word1;
+		read4 >> tmp4.difficult;
+		if (tmp4.difficult == -858993460)
+			break;
+		read4 >> tmp4.value;
+		tmp4.index = index++;
+		store[3].push_back(tmp4);
+	}
+	word tmp5;
+	while (!read5.eof())
+	{
+		read5 >> tmp5.word1;
+		read5 >> tmp5.difficult;
+		if (tmp5.difficult == -858993460)
+			break;
+		read5 >> tmp5.value;
+		tmp5.index = index++;
+		store[4].push_back(tmp5);
+	}
+	word tmp6;
+	while (!read6.eof())
+	{
+		read6 >> tmp6.word1;
+		read6 >> tmp6.difficult;
+		if (tmp6.difficult == -858993460)
+			break;
+		read6 >> tmp6.value;
+		tmp6.index = index++;
+		store[5].push_back(tmp6);
+	}
+	/*以此类推读入六个文件的单词(注意除了第一个表其他表默认所有单词都有价值需要读入)*/
+	vector<int> S, d, v, beforerecite;
+	for (int i = 0; i<6; ++i)
+	{
+		for (int j = 0; j<store[i].size(); ++j)
+		{
+			if (store[i][j].value<circle[i])
+			{
+				++store[i][j].value;
+			}
+			else if (store[i][j].value >= mustrecite)
+			{
+				beforerecite.push_back(store[i][j].index);
+			}
+			else
+			{
+				S.push_back(store[i][j].index);
+				d.push_back(store[i][j].difficult);
+				v.push_back(store[i][j].value*cirvalue[i]);
+			}
+		}
+	}
+	vector<int> res;
+	res = torecite(S, d, v);
+	for (int i = 0; i<beforerecite.size(); ++i)
+	{
+		res.push_back(beforerecite[i]);//压入价值超过阈值的单词
+	}
+	sort(res.begin(), res.end());//最后得到的今天要背诵的单词索引表
+	vector<string> list;
+	int resnum = 0;
+	for (int i = 0; i<6; ++i)
+	{
+		for (int j = 0; j<store[i].size(); ++j)
+		{
+			if (resnum<res.size())
+			{
+				if (res[resnum] == store[i][j].index)
+				{
+					list.push_back(store[i][j].word1);
+					resnum++;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	cout << "经计算，以下单词为今日需要背诵的单词：" << endl;
+	for (int i = 0; i < list.size(); i++)
+	{
+		cout << list[i] << ' ';
+		if ((i + 1) % 5 == 0)
+			cout << endl;
+	}
+	cout << endl;
+	cout << "请根据背诵情况写下相应单词的背诵结果，0表示轻松背会，1表示费劲" << endl;
+	vector<int> reciteres;
+	for (int i = 0; i < list.size(); ++i)
+	{
+		int tmp;
+		cin >> tmp;
+		reciteres.push_back(tmp % 2);
+	}
+	/*list即为背诵单词表，在这里进行交互操作来获得背诵情况?
+????这里假设reciteres得到的为对应单词的背诵结果，0表示轻松背会，1表示费劲?*/
+	write[0].open(filedir[1]), write[1].open(filedir[2]), write[2].open(filedir[3]), write[3].open(filedir[4]), write[4].open(filedir[5]), write[5].open(filedir[6], ios::app);
+	resnum = 0;
+	for (int i = 0; i<7; ++i)
+	{
+		if (i == 0)
+		{
+			for (int j = 0; j<store[i].size(); ++j)
+			{
+				if (res[resnum] == store[i][j].index)
+				{
+					++resnum;
+				}
+				store[i + 1].push_back(store[i][j]);
+			}
+		}
+		else
+		{
+			for (int j = 0; j<store[i].size(); ++j)
+			{
+				if (resnum<res.size() && res[resnum] == store[i][j].index)
+				{
+					if (reciteres[resnum] == 0)
+					{
+						store[i][j].value = 1;
+						store[i + 1].push_back(store[i][j]);
+					}
+					else
+					{
+						store[i][j].difficult++;
+						store[i][j].value++;
+						write[i - 1] << store[i][j].word1 << " " << store[i][j].value << " " << store[i][j].difficult << endl;
+					}
+					resnum++;
+				}
+				else
+				{
+					write[i - 1] << store[i][j].word1 << " " << store[i][j].value << " " << store[i][j].difficult << endl;
+				}
+			}
+		}
+	}
 }
 
 int main()
 {
-	int n;
-	cin >> n;
-	point * a = new point[n];
-	for (int i = 0; i < n; i++)
-	{
-		cin >> a[i].x >> a[i].y;
-	}
-	sort(a, a + n, cmp1);
-	double close=closest_pair(a, n);
-	cout <<fixed<< setprecision(2) << close << endl;
+	cout << "请把想要背诵的单词写入new.txt，然后重启程序" << endl; 
+	string filedir[7];
+	filedir[0] = "new.txt";
+	filedir[1] = "4.txt";
+	filedir[2] = "5.txt";
+	filedir[3] = "6.txt";
+	filedir[4] = "7.txt";
+	filedir[5] = "8.txt";
+	filedir[6] = "already.txt";
+	daypro(filedir);
+	cout << "复习单词列表已更新，今日背诵结束" << endl;
 	return 0;
 }
