@@ -23,7 +23,7 @@ const int isdirty=3;
 const int needtowash=3;
 const int MAXCLOTH=1e3;
 const int INF=1e7;
-struct cloth
+struct cloth//衣物类结构
 {
     int group,warm,handsome,index,dirty;
     string name;
@@ -36,7 +36,7 @@ struct cloth
         return group<rhs.group;
     }
 };
-ofstream& operator<<(ofstream &os,cloth &s)
+ofstream& operator<<(ofstream &os,cloth &s)//重载io流
 {
     os<<s.name<<" "<<s.index<<" "<<s.group<<" "<<s.warm<<" "<<s.handsome<<" "<<s.dirty;
     return os;
@@ -46,17 +46,17 @@ ifstream& operator>>(ifstream &is,cloth &s)
     is>>s.name>>s.index>>s.group>>s.warm>>s.handsome>>s.dirty;
     return is;
 }
-struct buff
+struct buff//搭配结构
 {
     int clotha,clothb,buff;
 };
-struct edge
+struct edge//求最大流用的边
 {
     int to,cap,rev;
 };
 vector<edge> G[MAXCLOTH];
 bool used[MAXCLOTH];
-void add_edge(int from,int to,int cap)
+void add_edge(int from,int to,int cap)//在图中增加边
 {
     edge tmp;
     tmp.to=to,tmp.cap=cap,tmp.rev=G[to].size();
@@ -64,7 +64,7 @@ void add_edge(int from,int to,int cap)
     tmp.to=from,tmp.cap=0,tmp.rev=G[from].size()-1;
     G[to].push_back(tmp);
 }
-int dfs(int v,int t,int f)
+int dfs(int v,int t,int f)//求增广路
 {
     if(v==t)
     {
@@ -87,7 +87,7 @@ int dfs(int v,int t,int f)
     }
     return 0;
 }
-int max_flow(int s,int t)
+int max_flow(int s,int t)//求最大流
 {
     int flow=0;
     for(;;)
@@ -101,7 +101,7 @@ int max_flow(int s,int t)
         flow+=f;
     }
 }
-int findpattern(vector<buff> &nowknow)
+int findpattern(vector<buff> &nowknow)//对当前搭配建立图并求出最大流
 {
     for(int i=0;i<nowknow.size();++i)
     {
@@ -117,8 +117,9 @@ int findpattern(vector<buff> &nowknow)
     }
     return max_flow(0,1);
 }
-void process(int warmlow,int warmhig,string dir)
+void process(int warmlow,int warmhig,string dir)//主要处理过程
 {
+    //初始化部分
     int dp[k+1][warmmax+1];
     vector<int> valueres[2][warmmax+1];
     vector<int> dirtycloth;
@@ -157,25 +158,26 @@ void process(int warmlow,int warmhig,string dir)
         findbuff[tmp.clothb][tmp.clotha]=tmp.buff;
         nowknow.push_back(tmp);
     }
+    //动态规划部分
     int nowgroup=1;
     for(int i=0;i<clothnum;++i)
     {
-        nowgroup=nowhave[i].group;
+        nowgroup=nowhave[i].group;//衣物类别为当前类别
         for(int j=0;j<=warmhig;++j)
         {
-            if(dp[nowgroup-1][j]==-1)
+            if(dp[nowgroup-1][j]==-1)//没有能达到当前状况的策略
             {
                 continue;
             }
             int value=nowhave[i].handsome-nowhave[i].dirty;
-            for(int t=0;t<valueres[(nowgroup-1)%2][j].size();++t)
+            for(int t=0;t<valueres[(nowgroup-1)%2][j].size();++t)//找到与之相关的搭配并求出考虑到搭配的实际值
             {
                 if(findbuff[nowhave[i].index].find(valueres[(nowgroup-1)%2][j][t])!=findbuff[nowhave[i].index].end())
                 {
                     value+=findbuff[nowhave[i].index][valueres[(nowgroup-1)%2][j][t]];
                 }
             }
-            if(dp[nowgroup][j+nowhave[i].warm]<dp[nowgroup-1][j]+value)
+            if(dp[nowgroup][j+nowhave[i].warm]<dp[nowgroup-1][j]+value)//更新过程
             {
                 dp[nowgroup][j+nowhave[i].warm]=dp[nowgroup-1][j]+value;
                 valueres[nowgroup%2][j+nowhave[i].warm]=valueres[(nowgroup-1)%2][j];
@@ -183,6 +185,7 @@ void process(int warmlow,int warmhig,string dir)
             }
         }
     }
+    //完成动态规划过程输出推荐衣物
     int outindex=warmlow,outval=-1;
     for(int i=warmlow;i<=warmhig;++i)
     {
@@ -201,9 +204,11 @@ void process(int warmlow,int warmhig,string dir)
         }
         cout<<nowhave[findindex].name<<endl;
     }
+    //求最大流以求出最大可能搭配种数
     int maxpattern=findpattern(nowknow);
     cout<<"实际最大的可能搭配有"<<maxpattern<<"种"<<endl;
     vector<int> actualwear;
+    //根据实际穿着改变衣物的污损度
     cout<<"今天的实际穿着是?"<<endl;
     int tmp;
     while(cin>>tmp,tmp)
