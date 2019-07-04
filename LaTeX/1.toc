@@ -1,6 +1,0 @@
-\contentsline {section}{\numberline {1}文章主旨}{1}% 
-\contentsline {subsection}{\numberline {1.1}主旨其他}{2}% 
-\contentsline {subsubsection}{\numberline {1.1.1}其他其他}{2}% 
-\contentsline {subsection}{\numberline {1.2}eeee}{2}% 
-\contentsline {section}{\numberline {A}englang}{2}% 
-\contentsline {subsection}{\numberline {A.1}eee}{2}% 
