@@ -1,3 +1,5 @@
 .vscode/launch.json
 .vscode/
 node.js/koatry/node_modules/
+LaTeX/*.png
+LaTeX/*.pdf
