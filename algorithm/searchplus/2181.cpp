@@ -11,17 +11,17 @@ struct node
 int num;
 void dfs(node &now,int &start,int passstart,int nowpos,bool startcon)
 {
-    if(passstart==3&&start!=startcon)
-    {
-        return;
-    }
+    // if(passstart==3&&start!=startcon)
+    // {
+    //     return;
+    // }
     if(start==nowpos&&startcon==0)
     {
-        if(now.condition!=(1<<21-2))
+        if(now.condition!=((1<<21)-2))
         {
             return;
         }
-        printf("%d:",num);
+        printf("%d: ",num);
         ++num;
         for(int i=0;i<now.path.size();++i)
         {
