@@ -1,131 +1,139 @@
+#include<cstring>
 #include<cstdio>
 #include<algorithm>
+#include<vector>
 using namespace std;
-const int MAXN = 1030;
-const int MAXM = 1030;
-const int INF = 1e9 + 7;
-const int maxnode = 1000300;
-struct DLX      //矩阵的行和列是从1开始的  
+typedef long long ll;
+const int maxc = 1200;
+const int maxnode = 1200;
+const int maxr = 1200;
+
+struct DLX
 {
-	int n, m, size; //size为结点数  
-	int U[maxnode], D[maxnode], L[maxnode], R[maxnode], Row[maxnode], Col[maxnode];
-	int H[MAXN], S[MAXM];   //H为每一行的头结点，但不参与循环。S为每一列的结点个数  
-	int ansd;
+	int n, sz;//列数，结点数
+	int S[maxc];//各列结点数
+	int row[maxnode], col[maxnode];//各点行列编号
+	int L[maxnode], R[maxnode], U[maxnode], D[maxnode];//十字链表
+	int ansd, ans[maxr];//解
 
-	void init(int _n, int _m)   //m为列  
+	void init(int n)
 	{
-		n = _n;
-		m = _m;
-		for (int i = 0; i <= m; i++)   //初始化列的头结点  
+		this->n = n;
+
+		//虚拟结点
+		for (int i = 0; i <= n; i++)
 		{
-			S[i] = 0;
-			U[i] = D[i] = i;
-			L[i] = i - 1;
-			R[i] = i + 1;
+			U[i] = i; D[i] = i; L[i] = i - 1; R[i] = i + 1;
 		}
-		R[m] = 0; L[0] = m;
-		size = m;
-		for (int i = 1; i <= n; i++) H[i] = -1;    //初始化行的头结点  
+
+		R[n] = 0; L[0] = n;
+		sz = n + 1;
+		memset(S, 0, sizeof S);
 	}
 
-	void Link(int r, int c)
+	//插入决策行  _r 行号  columns 记录结点列号·[1,n]
+	void add_row(int _r, vector<int> columns)
 	{
-		size++; //类似于前向星  
-		Col[size] = c;
-		Row[size] = r;
-		S[Col[size]]++;
-		D[size] = D[c];
-		U[D[c]] = size;
-		U[size] = c;
-		D[c] = size;
-		if (H[r] == -1) H[r] = L[size] = R[size] = size; //当前行为空  
-		else        //当前行不为空： 头插法，无所谓顺序，因为Row、Col已经记录了位置  
+		int first = sz;
+		for (int i = 0; i < columns.size(); i++)
 		{
-			R[size] = R[H[r]];
-			L[R[H[r]]] = size;
-			L[size] = H[r];
-			R[H[r]] = size;
+			int _c = columns[i];
+			L[sz] = sz - 1; R[sz] = sz + 1;
+			D[sz] = _c; U[sz] = U[_c];//成环
+			D[U[_c]] = sz; U[_c] = sz;
+			row[sz] = _r; col[sz] = _c;
+			S[_c]++; sz++;
 		}
+		R[sz - 1] = first; L[first] = sz - 1;
 	}
 
-	void remove(int c)  //c是列的编号， 不是结点的编号  
+	//删除一列结点
+	void _remove(int _c)
 	{
-		L[R[c]] = L[c]; R[L[c]] = R[c];     //在列的头结点的循环队列中， 越过列c  
-		for (int i = D[c]; i != c; i = D[i])
+		L[R[_c]] = L[_c];
+		R[L[_c]] = R[_c];
+
+		for (int i = D[_c]; i != _c; i = D[i])
 			for (int j = R[i]; j != i; j = R[j])
 			{
-				//被删除结点的上下结点仍然有记录  
-				U[D[j]] = U[j];
-				D[U[j]] = D[j];
-				S[Col[j]]--;
+				U[D[j]] = U[j]; D[U[j]] = D[j]; S[col[j]]--;
 			}
 	}
 
-	void resume(int c)
+	//恢复一列结点，和删除顺序相反
+	void _resume(int _c)
 	{
-		L[R[c]] = R[L[c]] = c;
-		for (int i = U[c]; i != c; i = U[i])
+		for (int i = U[_c]; i != _c; i = U[i])
 			for (int j = L[i]; j != i; j = L[j])
 			{
-				U[D[j]] = D[U[j]] = j;
-				S[Col[j]]++;
+				U[D[j]] = j; D[U[j]] = j; S[col[j]]++;
 			}
+
+		L[R[_c]] = _c;
+		R[L[_c]] = _c;
 	}
 
-	void Dance(int d)
+	void dfs(int d)
 	{
-		if (d >= ansd) return;
 		if (R[0] == 0)
 		{
-			ansd = d;
+			ansd = max(ansd, d); //记录解的长度
 			return;
 		}
 
-		int c = R[0];
-		for (int i = R[0]; i != 0; i = R[i])   //挑结点数最少的那一列，否则会超时，那为什么呢?  
-			if (S[i] < S[c])
-				c = i;
+		//找最少结点的列删除
+		int _c = R[0];
+		for (int i = R[0]; i != 0; i = R[i])
+			if (S[i] < S[_c]) _c = i;
 
-		remove(c);
-		for (int i = D[c]; i != c; i = D[i])
+		_remove(_c);
+		for (int i = D[_c]; i != _c; i = D[i])
 		{
-			for (int j = R[i]; j != i; j = R[j]) remove(Col[j]);
-			Dance(d + 1);
-			for (int j = L[i]; j != i; j = L[j]) resume(Col[j]);
+			ans[d] = row[i];
+			for (int j = R[i]; j != i; j = R[j])
+				_remove(col[j]);
+
+			dfs(d + 1);
+
+			for (int j = L[i]; j != i; j = L[j])//反向恢复
+				_resume(col[j]);
 		}
-		resume(c);
+		_resume(_c);
+
+		return;
 	}
-};
-DLX dlx;
+
+}solver;
+ll number[1200];
 int main()
 {
 	int T;
 	scanf("%d", &T);
 	while (T--)
 	{
-		int n, m, p;
-		scanf("%d%d%d", &n, &m, &p);
-		dlx.init(p, n * m);
-		for (int i = 1; i <= p; ++i)
+		int n;
+		scanf("%d", &n);
+		for (int i = 1; i <= n; ++i)
 		{
-			int x1, x2, y1, y2;
-			scanf("%d%d%d%d", &x1, &y1, &x2, &y2);
-			for (int j = x1 + 1; j <= x2; ++j)
+			scanf("%lld", &number[i]);
+		}
+		solver.init(n);
+		for (int i = 1; i <= n; ++i)
+		{
+			vector<int> col;
+			for (int j = 1; j <= n; ++j)
 			{
-				for (int t = y1 + 1; t <= y2; ++t)
+				if (j % i == 0)
 				{
-					dlx.Link(i, (j - 1) * m + t);
+					col.push_back(j);
 				}
 			}
+			solver.add_row(i, col);
 		}
-		dlx.ansd = INF;
-		dlx.Dance(0);
-		int ans = -1;
-		if (dlx.ansd != INF)
-		{
-			ans = dlx.ansd;
-		}
-		printf("%d\n", ans);
+		vector<int> ans;
+		solver.ansd = 0;
+		solver.dfs(0);
+		printf("%d\n", solver.ansd);
 	}
 	return 0;
 }
