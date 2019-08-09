@@ -1,14 +1,15 @@
 #include<cstdio>
 #include<queue>
-#include<algorithm>
 #include<vector>
+#include<algorithm>
 #include<cstring>
 using namespace std;
 const int maxn=1020;
 const int inf=0x3f3f3f3f;
 struct Edge{
     int from,to,dist;
-    Edge(int u=0,int v=0,int d=0):from(u),to(v),dist(d){}
+    Edge(int u,int v,int d):from(u),to(v),dist(d){}
+    Edge(){}
 };
 struct Dijkstra{
     int n,m;
@@ -61,20 +62,34 @@ struct Dijkstra{
         }
     }
 }dijkstra;
+int from[maxn],to[maxn];
+Edge edg[100020];
 int main()
 {
-    int N,M;
-    scanf("%d%d",&M,&N);
-    dijkstra.init(N);
+    int N,M,X;
+    scanf("%d%d%d",&N,&M,&X);
+    dijkstra.init(N+1);
     for(int i=0;i<M;++i)
     {
-        int fro,to,dis;
-        scanf("%d%d%d",&fro,&to,&dis);
-        --fro,--to;
-        dijkstra.AddEdge(fro,to,dis);
-        dijkstra.AddEdge(to,fro,dis);
+        scanf("%d%d%d",&edg[i].from,&edg[i].to,&edg[i].dist);
+        dijkstra.AddEdge(edg[i].from,edg[i].to,edg[i].dist);
     }
-    dijkstra.dijkstra(N-1);
-    printf("%d\n",dijkstra.d[0]);
+    dijkstra.dijkstra(X);
+    for(int i=1;i<=N;++i)
+    {
+        from[i]=dijkstra.d[i];
+    }
+    dijkstra.init(N+1);
+    for(int i=0;i<M;++i)
+    {
+        dijkstra.AddEdge(edg[i].to,edg[i].from,edg[i].dist);
+    }
+    dijkstra.dijkstra(X);
+    int ans=0;
+    for(int i=1;i<=N;++i)
+    {
+        ans=max(ans,from[i]+dijkstra.d[i]);
+    }
+    printf("%d\n",ans);
     return 0;
 }
