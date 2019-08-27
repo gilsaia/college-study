@@ -3,3 +3,6 @@
 *.png
 *.pdf
 *.exe
+*.gz
+*.aux
+*.log
