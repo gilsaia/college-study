@@ -1,0 +1,27 @@
+CREATE TABLE F(
+    c INT PRIMARY KEY,
+    d INT
+)
+CREATE TABLE E(
+    a INT,
+    F_c INT REFERENCES F(c),
+    b INT,
+    PRIMARY KEY(a,F_c)
+)
+CREATE TABLE G(
+    E_a INT REFERENCES E(a),
+    E_F_c INT REFERENCES E(F_c),
+    e INT,
+    PRIMARY KEY (E_a,E_F_c)
+)
+CREATE TABLE H(
+    h INT PRIMARY KEY,
+    g INT
+)
+CREATE TABLE S(
+    G_E_a INT REFERENCES G(E_a),
+    G_E_F_c INT REFERENCES G(E_F_c),
+    H_h INT REFERENCES H(h),
+    f INT,
+    PRIMARY KEY (G_E_F_c,G_E_a,H_h)
+)
