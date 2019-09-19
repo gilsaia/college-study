@@ -8,7 +8,7 @@ top=1in,bottom=1in]{geometry}
     \maketitle
     \begin{abstract}
     这篇文章的目的是为了探究编译器各个阶段的功能。了解了各阶段的功能后，我们还发现编译器将优化的选择权交给了使用者从而做到编译时间以及运行性能的平衡。
-    此外我们还探索了编译器内置的OpenMP框架能够做到的简单自动化并行处理，以及GNU配套GCC的工具链有什么功能，
+    此外我们还探索了编译器内置的OpenMP框架能够做到的简单自动化并行处理，GCC对于多文件编译的处理以及GNU配套GCC的工具链有什么功能，
     如何使用。
     
     \centering
@@ -35,7 +35,7 @@ top=1in,bottom=1in]{geometry}
     GCC能够有非常好的跨平台性能，原因是它在所有平台上使用同一个前端处理程序，
     产生一样的中介码，因此在其他平台上使用有很大可能做到同样的事。
     \subsection{在Windows上使用GCC}
-    我选择了MinGW项目中的gcc作为实际测试的编译器，这也是平时我个人常用的编译器，
+    我选择了MinGW-w64项目作为实际测试的编译器，这也是平时我个人常用的编译器，
     编程语言则选择C++，在这里要注意如果调用的是gcc则要加上命令后缀\emph{-lstdc++}，
     这是因为gcc程序虽然能够编译C++文件但是并不能自动寻找并链接相关库，为了简单起见我们调用
     能够自动链接C++标准库的g++程序处理代码。
@@ -219,6 +219,69 @@ top=1in,bottom=1in]{geometry}
     经过不同方面的比较后，我们可以看出编译器的四个阶段分别处理的任务，预处理阶段只会进行预处理指令、宏和调用系统包的替换，
     不同的优化等级不会影响这一阶段。编译阶段将根据不同级别的优化及参数（如并行化等等）来生成对应的汇编代码，汇编阶段将代码翻译为机器码生成目标文件，
     链接阶段将目标文件与系统库函数链接从而生成最后的可执行文件。不同的优化等级实际是设置不同的优化器能否使用，这会影响编译时长以及运行时长，以及实际的文件大小。
+    \section{尝试编译多文件程序}\label{multifile}
+    在实际的工程中，为了提高效率，往往是会分模块进行编码，造成需要编译多个文件的情况出现。
+    对此我们进行了一个实验，首先写一个简单的模块程序\textbf{five.cpp}：
+    \begin{verbatim}
+        #include<queue>
+        using std::priority_queue;
+        priority_queue<int> que;
+        void push(int x)
+        {
+            que.push(x);
+        }
+        int pop()
+        {
+            int tmp=que.top();
+            que.pop();
+            return tmp;
+        }
+    \end{verbatim}
+    可以看出这个模块只是简单的调用了优先队列，包装了输入以及输出两个功能。对应的头文件\textbf{five.h}：
+    \begin{verbatim}
+        void push(int x);
+        int pop();
+    \end{verbatim}
+    写好了函数功能，调用它的代码\textbf{five\_2.cpp}：
+    \begin{verbatim}
+        #include<iostream>
+        #include"five.h"
+        using namespace std;
+        int main()
+        {
+            push(1);
+            push(2);
+            cout<<pop()<<endl;
+            return 0;
+        }
+    \end{verbatim}
+
+    在GCC中，编译多文件有两种方式，一种是直接编译所有文件，得到输出，类似\emph{g++ five.cpp five\_2.cpp -o five.exe}直接得到输出文件。
+    这样的缺点是每次有一个文件改变之后，就需要整体重新编译一次，对于百万行级别的正式工程会造成很大的代价，
+    而另一种方法则是分别编译出每个文件的目标文件，在最后的链接过程中才将多个文件链接起来输出可执行文件。
+    这样每次只需要重新编译更改过的文件就可以得到输出。经观察可以发现，在预处理、编译等等阶段，在主程序中只有调用函数的声明以及调用语句，
+    只有在最后的链接过程才会真正将相关函数组合起来形成输出。
+    \section{makefile的尝试}
+    在软件开发中，make是一个工具程序（Utility software），经由读取叫做“makefile”的文件，
+    自动化建构软件。它是一种转化文件形式的工具，转换的目标称为“target”；
+    与此同时，它也检查文件的依赖关系，如果需要的话，
+    它会调用一些外部软件来完成任务。它的依赖关系检查系统非常简单，
+    主要根据依赖文件的修改时间进行判断。大多数情况下，它被用来编译源代码，
+    生成结果代码，然后把结果代码连接起来生成可执行文件或者库文件。
+    它使用叫做“makefile”的文件来确定一个target文件的依赖关系，
+    然后把生成这个target的相关命令传给shell去执行。
+
+    虽然现有的ide可以替代makefile的大部分工作，但在类Unix系统中，它仍有很重要的作用。
+
+    以章节\ref{multifile}的程序为例，对应的makefile文件
+    \begin{verbatim}
+        five: five.cpp five_2.cpp
+            g++ -c five.cpp -o five.o
+            g++ -c five_2.cpp -o five_2.o
+            g++ five_2.o five.o -o five.exe
+    \end{verbatim}
+    在windows上使用对应的\emph{mingw32-make five}即可执行相应命令，要注意的是命令必须以缩进符开头。
+    当前置条件有所更改时make会自动执行相关指令否则不进行操作。
     \section{尝试使用GNU工具链}
     \subsection{size}
     用于列出目标模块的代码尺寸及相关信息，对\textbf{three.exe}结果如下：

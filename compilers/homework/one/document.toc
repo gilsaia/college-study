@@ -13,13 +13,15 @@
 \contentsline {subsection}{\numberline {4.2}不同的优化选项对代码的影响}{7}% 
 \contentsline {subsection}{\numberline {4.3}可能的简单自动并行化}{7}% 
 \contentsline {section}{\numberline {5}结论}{8}% 
-\contentsline {section}{\numberline {6}尝试使用GNU工具链}{8}% 
-\contentsline {subsection}{\numberline {6.1}size}{8}% 
-\contentsline {subsection}{\numberline {6.2}strings}{8}% 
-\contentsline {subsection}{\numberline {6.3}as}{8}% 
-\contentsline {subsection}{\numberline {6.4}ld}{8}% 
-\contentsline {subsection}{\numberline {6.5}nm}{9}% 
-\contentsline {subsection}{\numberline {6.6}objdump}{9}% 
-\contentsline {section}{参考文献}{9}% 
-\contentsline {section}{\numberline {A}two.s}{9}% 
-\contentsline {section}{\numberline {B}three.cpp}{12}% 
+\contentsline {section}{\numberline {6}尝试编译多文件程序}{8}% 
+\contentsline {section}{\numberline {7}makefile的尝试}{9}% 
+\contentsline {section}{\numberline {8}尝试使用GNU工具链}{10}% 
+\contentsline {subsection}{\numberline {8.1}size}{10}% 
+\contentsline {subsection}{\numberline {8.2}strings}{10}% 
+\contentsline {subsection}{\numberline {8.3}as}{10}% 
+\contentsline {subsection}{\numberline {8.4}ld}{10}% 
+\contentsline {subsection}{\numberline {8.5}nm}{10}% 
+\contentsline {subsection}{\numberline {8.6}objdump}{10}% 
+\contentsline {section}{参考文献}{11}% 
+\contentsline {section}{\numberline {A}two.s}{11}% 
+\contentsline {section}{\numberline {B}three.cpp}{14}% 
