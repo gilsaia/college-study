@@ -1,0 +1,27 @@
+\contentsline {section}{\numberline {1}引言}{3}% 
+\contentsline {section}{\numberline {2}编译器选取}{3}% 
+\contentsline {subsection}{\numberline {2.1}介绍GCC}{3}% 
+\contentsline {subsection}{\numberline {2.2}在Windows上使用GCC}{3}% 
+\contentsline {section}{\numberline {3}编译的四个阶段}{3}% 
+\contentsline {subsection}{\numberline {3.1}从最简单的样例程序开始}{3}% 
+\contentsline {subsection}{\numberline {3.2}预处理阶段}{4}% 
+\contentsline {subsection}{\numberline {3.3}编译阶段}{4}% 
+\contentsline {subsection}{\numberline {3.4}汇编阶段}{6}% 
+\contentsline {subsection}{\numberline {3.5}链接阶段}{6}% 
+\contentsline {section}{\numberline {4}不同因素对编译过程及结果的影响}{6}% 
+\contentsline {subsection}{\numberline {4.1}引入库函数后编译各阶段的变化}{6}% 
+\contentsline {subsection}{\numberline {4.2}不同的优化选项对代码的影响}{7}% 
+\contentsline {subsection}{\numberline {4.3}可能的简单自动并行化}{7}% 
+\contentsline {section}{\numberline {5}结论}{8}% 
+\contentsline {section}{\numberline {6}尝试编译多文件程序}{8}% 
+\contentsline {section}{\numberline {7}makefile的尝试}{9}% 
+\contentsline {section}{\numberline {8}尝试使用GNU工具链}{10}% 
+\contentsline {subsection}{\numberline {8.1}size}{10}% 
+\contentsline {subsection}{\numberline {8.2}strings}{10}% 
+\contentsline {subsection}{\numberline {8.3}as}{10}% 
+\contentsline {subsection}{\numberline {8.4}ld}{10}% 
+\contentsline {subsection}{\numberline {8.5}nm}{10}% 
+\contentsline {subsection}{\numberline {8.6}objdump}{10}% 
+\contentsline {section}{参考文献}{11}% 
+\contentsline {section}{\numberline {A}two.s}{11}% 
+\contentsline {section}{\numberline {B}three.cpp}{14}% 

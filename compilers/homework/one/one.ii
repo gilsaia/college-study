@@ -1,0 +1,18 @@
+# 1 ".\\one.cpp"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 ".\\one.cpp"
+
+
+
+
+
+
+//this is for test
+int main()
+{
+    int a=1,b=1;
+    int t=a+b;
+    int s=a+b+b;
+    return 0;
+}

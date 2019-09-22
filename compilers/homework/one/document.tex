@@ -1,0 +1,529 @@
+\documentclass[UTF8]{ctexart}
+\usepackage[left=1.25in,right=1.25in,
+top=1in,bottom=1in]{geometry}
+\usepackage{booktabs}
+\begin{document}
+    \title{编译器使用调研报告}
+    \author{杨俣哲}
+    \maketitle
+    \begin{abstract}
+    这篇文章的目的是为了探究编译器各个阶段的功能。了解了各阶段的功能后，我们还发现编译器将优化的选择权交给了使用者从而做到编译时间以及运行性能的平衡。
+    此外我们还探索了编译器内置的OpenMP框架能够做到的简单自动化并行处理，GCC对于多文件编译的处理以及GNU配套GCC的工具链有什么功能，
+    如何使用。
+    
+    \centering
+    \textbf{关键字}:GCC，编译器，代码，优化等级
+    \end{abstract}
+    \newpage
+    \tableofcontents
+    \newpage
+    \section{引言}
+    编译器是代码转变为可执行文件的关键，对于不同的平台，同样的代码产生的可执行文件都能实现同样的效果，
+    这中间的关键就是编译器将其分为了前端和后端，不同的平台更改后端即可实现良好的兼容性，同时对于大型工程，
+    编译的时间会成为一个很大的问题，这就和编译器中的各种优化器有关了。总而言之，编译器的性能与代码的质量息息相关，
+    一个编译器对应的是无限的代码，对编译器的设计优化就成为了很重要的工作。
+    \section{编译器选取}
+    我们选取了GCC作为研究的编译器，GCC具有跨平台、支持多语言、
+    内嵌并行编程规范等特点，比较符合我们的需求。
+    \subsection{介绍GCC}
+    GNU编译器套装（英语：GNU Compiler Collection，缩写为GCC），
+    指一套编程语言编译器，以GPL及LGPL许可证所发行的自由软件，
+    也是GNU计划的关键部分，也是GNU工具链的主要组成部分之一。
+    GCC（特别是其中的C语言编译器）也常被认为是跨平台编译器的事实标准。
+    1985年由理查德·马修·斯托曼开始发展，现在由自由软件基金会负责维护工作。\cite{GCCWiki}
+
+    GCC能够有非常好的跨平台性能，原因是它在所有平台上使用同一个前端处理程序，
+    产生一样的中介码，因此在其他平台上使用有很大可能做到同样的事。
+    \subsection{在Windows上使用GCC}
+    我选择了MinGW-w64项目作为实际测试的编译器，这也是平时我个人常用的编译器，
+    编程语言则选择C++，在这里要注意如果调用的是gcc则要加上命令后缀\emph{-lstdc++}，
+    这是因为gcc程序虽然能够编译C++文件但是并不能自动寻找并链接相关库，为了简单起见我们调用
+    能够自动链接C++标准库的g++程序处理代码。
+    \section{编译的四个阶段}\label{basic}
+    从代码到程序一般会分为四个阶段，即预处理、编译、汇编、链接，虽然用GCC可以在一个程序内
+    完成四个步骤，但通过不同的参数可以指定程序完成不同阶段，方便我们观察各阶段发生的变化。
+    在这里我用一段不需要链接标准库，最简单的代码来展示各个阶段的细节，而后会测试不同复杂度的代码，
+    以及编译器不同的选项对各项性能的影响。
+    \subsection{从最简单的样例程序开始}
+    为了能够直观的看到不同阶段的结果，我从一段最简单的，不需要链接标准库的代码开始，
+    {\textbf{one.cpp}}源代码如下：
+    \begin{verbatim}
+        #ifndef sum
+        #define sum a+b
+        #endif
+        #ifdef sum
+        #define sum_2 a+b+b
+        #endif
+        //this is for test
+        int main()
+        {
+            int a=1,b=1;
+            int t=sum;
+            int s=sum_2;
+            return 0;
+        }
+    \end{verbatim}
+    \subsection{预处理阶段}
+    使用命令\emph{g++ one.cpp},加上参数\emph{-E}即可使程序只处理程序至预处理阶段，由于默认设置中预处理并不输出文件，
+    我们可以加上参数\emph{-o outputfile.ii}来指定输出文件，预处理后代码如下：
+    \begin{verbatim}
+        # 1 ".\\one.cpp"
+        # 1 "<built-in>"
+        # 1 "<command-line>"
+        # 1 ".\\one.cpp"
+        int main()
+        {
+            int a=1,b=1;
+            int t=a+b;
+            int s=a+b+b;
+            return 0;
+        }                 
+    \end{verbatim}
+    可以看到并没有增加许多内容但是宏的内容已被替换，经查阅后得知，预处理阶段只处理预处理指令，即简单的进行文本替换。\cite{GCCUse}
+
+    另外，通过添加额外的\emph{-C}参数可以令编译器保留注释信息，从而更加方便调试。
+    \subsection{编译阶段}
+    与预处理阶段类似，通过\emph{-S}参数就可以让编译器只进行到编译这一步骤，得到汇编代码\textbf{one.s}如下：
+    \begin{verbatim}
+        .file	"one.cpp"
+        .text
+        .def	___main;	.scl	2;	.type	32;	.endef
+        .globl	_main
+        .def	_main;	.scl	2;	.type	32;	.endef
+    _main:
+    LFB0:
+        .cfi_startproc
+        pushl	%ebp
+        .cfi_def_cfa_offset 8
+        .cfi_offset 5, -8
+        movl	%esp, %ebp
+        .cfi_def_cfa_register 5
+        andl	$-16, %esp
+        subl	$16, %esp
+        call	___main
+        movl	$1, 12(%esp)
+        movl	$1, 8(%esp)
+        movl	12(%esp), %edx
+        movl	8(%esp), %eax
+        addl	%edx, %eax
+        movl	%eax, 4(%esp)
+        movl	12(%esp), %edx
+        movl	8(%esp), %eax
+        addl	%eax, %edx
+        movl	8(%esp), %eax
+        addl	%edx, %eax
+        movl	%eax, (%esp)
+        movl	$0, %eax
+        leave
+        .cfi_restore 5
+        .cfi_def_cfa 4, 4
+        ret
+        .cfi_endproc
+    LFE0:
+        .ident	"GCC: (MinGW.org GCC-8.2.0-3) 8.2.0"    
+    \end{verbatim}
+    在编译阶段编译器将预处理后的代码翻译为汇编语言，为了达到可重用的目的，编译器会将地址转化为相对地址，
+    从而能够在计算机中的任意位置正确运行，更多的细节会在章节\ref{influence}中进行展示。
+    \subsection{汇编阶段}
+    与前两者类似，\emph{-c}参数会让编译器只进行到汇编阶段，会将汇编代码转换为计算机能够识别的目标文件，
+    \textbf{one.o}为计算机能够识别的二进制代码，而人在没有辅助工具的情况下是无法直接理解的，但实际上
+    它主要是将最底层的汇编代码根据字典翻译成机器码，生成目标文件，但是这时它仍旧不是可执行文件，
+    因为虽然该测试程序并没有调用系统库及第三方库，但在实际生产中这几乎是不可能的，程序调用的库函数并没有实际的实现，
+    这就是最后一个阶段链接的功能了。
+    \subsection{链接阶段}
+    不加其他参数即可让编译器将上一阶段生成的目标文件链接上对应的库函数生成目标系统的可执行文件，在Windows系统上即生成
+    exe文件，至此，一个完整的编译过程就完成了。一个代码文件就这样一步一步变为了可执行文件可以在相应地方执行并发挥效果。
+    \section{不同因素对编译过程及结果的影响}\label{influence}
+    在章节\ref{basic}中我们讨论了对一个最简单的程序编译器的各个流程，接下来我们将会讨论在加上库函数之后对各阶段的影响，
+    不同的优化等级对结果的影响，并行化的可能等等。
+    \subsection{引入库函数后编译各阶段的变化}
+    我们引入库函数的标准输入输出流，得到的新程序\emph{two.cpp}如下：
+    \begin{verbatim}
+        #include<iostream>
+        using std::cin;
+        using std::cout;
+        int main()
+        {
+            int a,b;
+            cin>>a>>b;
+            int t=a+b;
+            cout<<t;
+            return 0;
+        }
+    \end{verbatim}
+    在经过预处理后得到的预处理文件\emph{two.ii}变为24999行，加上注释后更是有44063行，观察后发现只有最后10行是我们写的原始程序，
+    前面的都为一个头文件的替换，足以看出库函数在实际程序中运行代码的比重。
+    经过编译后文件长为127行，具体细节可见附录\ref{two_s}。可以观察出一大部分没有用到的函数及功能并没有变为汇编代码，
+    这就是一种合理的优化。
+    \subsection{不同的优化选项对代码的影响}
+    为了体现不同的优化等级对编译造成的影响，我们选取一个计算图中最短路的程序，这个程序调用了C++STL的vector和priority\_queue并且
+    自定义了数据结构，具体代码可见附录\ref{three_cpp},GCC有四个优化等级，平时默认为\emph{-O1}等级，可选的还有\emph{-O0,-O2,-O3}等几个选项，
+    经测试后结果如表\ref{optimize_list}所示。
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{ccccc}
+            \toprule
+            & \multicolumn{4}{c}{优化等级} \\
+            \cmidrule{2-5}
+            & O0 & O1 & O2 & O3 \\
+            \midrule
+            预处理文件长度(带注释) & 40085 & 40085 & 40085 & 40085 \\
+            汇编代码长度 & 8121 & 1248 & 1288 & 1373 \\
+            编译时间 & 1.3946767 & 1.3726876 & 1.3980681 & 1.4326956\\
+            百万级别数据程序运行时间 & 2.2438727 & 1.5599981 & 1.5225453 & 1.4980672 \\
+            程序大小 & 129KB & 51KB & 51KB & 50KB \\
+            \bottomrule
+        \end{tabular} 
+        \caption{不同优化等级的影响}\label{optimize_list}
+    \end{table}
+
+    可以明显看出的是预处理阶段实际上并没有优化方面的差别，O0级别即不优化在代码长度、程序大小以及程序运行时间上均有明显差别，但由于选取的程序
+    并不是特别复杂冗长的程序，在编译时间方面没有特别大的差距，数据上测试的是一组一百万大小的数据，
+    作为一个小型程序，不同的优化级别对程序运行时间的改善并不是特别明显。
+    \subsection{可能的简单自动并行化}
+    GCC自己集成了OpenMP框架，通过在程序中简单的加入一行预处理指令以及参数\emph{-fopenmp}即可让编译器完成简单的并行化工作，
+    我们尝试一个简单的带循环程序\textbf{four.cpp}：
+    \begin{verbatim}
+        int main()
+        {
+            long long a=0,b=1,c;
+            #pragma omp parallel
+            for(int i=0;i<100000000;++i)
+            {
+                c=a+b;
+            }
+            return 0;
+        }
+    \end{verbatim}
+    结果如表\ref{parallel_list}。
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{ccc}
+            \toprule
+            & \multicolumn{2}{c}{并行化} \\
+            \cmidrule{2-3}
+            & 正常 & 并行化 \\
+            \midrule
+            预处理文件长度(带注释) & 19 & 15  \\
+            汇编代码长度 & 28 & 76  \\
+            编译时间 & 0.695713 & 0.788956 \\
+            程序运行时间 & 0.2586863 & 0.2086197  \\
+            程序大小 & 43KB & 43KB  \\
+            \bottomrule
+        \end{tabular} 
+        \caption{并行化的影响}\label{parallel_list}
+    \end{table}
+
+    可以看出这是符合预期的，开启并行化加大了编译时间的消耗但减小了实际运行的消耗。
+    \section{结论}
+    经过不同方面的比较后，我们可以看出编译器的四个阶段分别处理的任务，预处理阶段只会进行预处理指令、宏和调用系统包的替换，
+    不同的优化等级不会影响这一阶段。编译阶段将根据不同级别的优化及参数（如并行化等等）来生成对应的汇编代码，汇编阶段将代码翻译为机器码生成目标文件，
+    链接阶段将目标文件与系统库函数链接从而生成最后的可执行文件。不同的优化等级实际是设置不同的优化器能否使用，这会影响编译时长以及运行时长，以及实际的文件大小。
+    \section{尝试编译多文件程序}\label{multifile}
+    在实际的工程中，为了提高效率，往往是会分模块进行编码，造成需要编译多个文件的情况出现。
+    对此我们进行了一个实验，首先写一个简单的模块程序\textbf{five.cpp}：
+    \begin{verbatim}
+        #include<queue>
+        using std::priority_queue;
+        priority_queue<int> que;
+        void push(int x)
+        {
+            que.push(x);
+        }
+        int pop()
+        {
+            int tmp=que.top();
+            que.pop();
+            return tmp;
+        }
+    \end{verbatim}
+    可以看出这个模块只是简单的调用了优先队列，包装了输入以及输出两个功能。对应的头文件\textbf{five.h}：
+    \begin{verbatim}
+        void push(int x);
+        int pop();
+    \end{verbatim}
+    写好了函数功能，调用它的代码\textbf{five\_2.cpp}：
+    \begin{verbatim}
+        #include<iostream>
+        #include"five.h"
+        using namespace std;
+        int main()
+        {
+            push(1);
+            push(2);
+            cout<<pop()<<endl;
+            return 0;
+        }
+    \end{verbatim}
+
+    在GCC中，编译多文件有两种方式，一种是直接编译所有文件，得到输出，类似\emph{g++ five.cpp five\_2.cpp -o five.exe}直接得到输出文件。
+    这样的缺点是每次有一个文件改变之后，就需要整体重新编译一次，对于百万行级别的正式工程会造成很大的代价，
+    而另一种方法则是分别编译出每个文件的目标文件，在最后的链接过程中才将多个文件链接起来输出可执行文件。
+    这样每次只需要重新编译更改过的文件就可以得到输出。经观察可以发现，在预处理、编译等等阶段，在主程序中只有调用函数的声明以及调用语句，
+    只有在最后的链接过程才会真正将相关函数组合起来形成输出。
+    \section{makefile的尝试}
+    在软件开发中，make是一个工具程序（Utility software），经由读取叫做“makefile”的文件，
+    自动化建构软件。它是一种转化文件形式的工具，转换的目标称为“target”；
+    与此同时，它也检查文件的依赖关系，如果需要的话，
+    它会调用一些外部软件来完成任务。它的依赖关系检查系统非常简单，
+    主要根据依赖文件的修改时间进行判断。大多数情况下，它被用来编译源代码，
+    生成结果代码，然后把结果代码连接起来生成可执行文件或者库文件。
+    它使用叫做“makefile”的文件来确定一个target文件的依赖关系，
+    然后把生成这个target的相关命令传给shell去执行。
+
+    虽然现有的ide可以替代makefile的大部分工作，但在类Unix系统中，它仍有很重要的作用。
+
+    以章节\ref{multifile}的程序为例，对应的makefile文件
+    \begin{verbatim}
+        five: five.cpp five_2.cpp
+            g++ -c five.cpp -o five.o
+            g++ -c five_2.cpp -o five_2.o
+            g++ five_2.o five.o -o five.exe
+    \end{verbatim}
+    在windows上使用对应的\emph{mingw32-make five}即可执行相应命令，要注意的是命令必须以缩进符开头。
+    当前置条件有所更改时make会自动执行相关指令否则不进行操作。
+    \section{尝试使用GNU工具链}
+    \subsection{size}
+    用于列出目标模块的代码尺寸及相关信息，对\textbf{three.exe}结果如下：
+    \begin{verbatim}
+        text    data     bss     dec         hex filename
+        18488   1916  21000560  21020964    140c124 .\three.exe
+    \end{verbatim}
+    \subsection{strings}
+    会列出所有可以打印的目标代码符号（4个字符以上），结果长度过大在此不作展示。
+    \subsection{as}\label{as}
+    是实际的汇编器，之前调用的\emph{gcc/g++}只是作为引导而实际进行汇编这一步骤的是该程序,
+    使用格式与之前相同，接受\emph{.s}文件生成目标文件。
+    \subsection{ld}
+    与\ref{as}类似,是实际的链接器，接受目标文件生成可执行文件。
+    \subsection{nm}
+    从目标程序中获取所有变量，由于结果过长在此一样不作展示。
+    \subsection{objdump}
+    能够列出关于二进制文件的各种信息，\emph{-f}列出文件头信息，如下：
+    \begin{verbatim}
+        .\three.exe:     file format pei-i386
+        architecture: i386, flags 0x0000013a:
+        EXEC_P, HAS_DEBUG, HAS_SYMS, HAS_LOCALS, D_PAGED
+        start address 0x004012d0
+    \end{verbatim}
+    \emph{-t}列出符号表，\emph{-d}列出执行的汇编语句，\emph{-Dexe}执行反汇编等等。
+    \begin{thebibliography}{99}
+        \bibitem{GCCWiki} https://zh.wikipedia.org/wiki/GCC
+        \bibitem{GCCUse} https://gcc.gnu.org/onlinedocs/gcc-9.2.0/gcc/Option-Summary.html\#Option-Summary
+        \addcontentsline{toc}{section}{参考文献}
+    \end{thebibliography}
+    \appendix
+    \section{two.s}\label{two_s}
+    \begin{verbatim}
+        .file	"two.cpp"
+        .text
+        .section .rdata,"dr"
+    __ZStL19piecewise_construct:
+        .space 1
+    .lcomm __ZStL8__ioinit,1,1
+        .def	___main;	.scl	2;	.type	32;	.endef
+        .text
+        .globl	_main
+        .def	_main;	.scl	2;	.type	32;	.endef
+    _main:
+    LFB1502:
+        .cfi_startproc
+        leal	4(%esp), %ecx
+        .cfi_def_cfa 1, 0
+        andl	$-16, %esp
+        pushl	-4(%ecx)
+        pushl	%ebp
+        .cfi_escape 0x10,0x5,0x2,0x75,0
+        movl	%esp, %ebp
+        pushl	%ecx
+        .cfi_escape 0xf,0x3,0x75,0x7c,0x6
+        subl	$36, %esp
+        call	___main
+        leal	-16(%ebp), %eax
+        movl	%eax, (%esp)
+        movl	$__ZSt3cin, %ecx
+        call	__ZNSirsERi
+        subl	$4, %esp
+        movl	%eax, %edx
+        leal	-20(%ebp), %eax
+        movl	%eax, (%esp)
+        movl	%edx, %ecx
+        call	__ZNSirsERi
+        subl	$4, %esp
+        movl	-16(%ebp), %edx
+        movl	-20(%ebp), %eax
+        addl	%edx, %eax
+        movl	%eax, -12(%ebp)
+        movl	-12(%ebp), %eax
+        movl	%eax, (%esp)
+        movl	$__ZSt4cout, %ecx
+        call	__ZNSolsEi
+        subl	$4, %esp
+        movl	$0, %eax
+        movl	-4(%ebp), %ecx
+        .cfi_def_cfa 1, 0
+        leave
+        .cfi_restore 5
+        leal	-4(%ecx), %esp
+        .cfi_def_cfa 4, 4
+        ret
+        .cfi_endproc
+    LFE1502:
+        .def	___tcf_0;	.scl	3;	.type	32;	.endef
+    ___tcf_0:
+    LFB1972:
+        .cfi_startproc
+        pushl	%ebp
+        .cfi_def_cfa_offset 8
+        .cfi_offset 5, -8
+        movl	%esp, %ebp
+        .cfi_def_cfa_register 5
+        subl	$8, %esp
+        movl	$__ZStL8__ioinit, %ecx
+        call	__ZNSt8ios_base4InitD1Ev
+        leave
+        .cfi_restore 5
+        .cfi_def_cfa 4, 4
+        ret
+        .cfi_endproc
+    LFE1972:
+        .def	__Z41__static_initialization_and_destruction_0ii;	.scl	3;	.type	32;	.endef
+    __Z41__static_initialization_and_destruction_0ii:
+    LFB1971:
+        .cfi_startproc
+        pushl	%ebp
+        .cfi_def_cfa_offset 8
+        .cfi_offset 5, -8
+        movl	%esp, %ebp
+        .cfi_def_cfa_register 5
+        subl	$24, %esp
+        cmpl	$1, 8(%ebp)
+        jne	L6
+        cmpl	$65535, 12(%ebp)
+        jne	L6
+        movl	$__ZStL8__ioinit, %ecx
+        call	__ZNSt8ios_base4InitC1Ev
+        movl	$___tcf_0, (%esp)
+        call	_atexit
+    L6:
+        nop
+        leave
+        .cfi_restore 5
+        .cfi_def_cfa 4, 4
+        ret
+        .cfi_endproc
+    LFE1971:
+        .def	__GLOBAL__sub_I_main;	.scl	3;	.type	32;	.endef
+    __GLOBAL__sub_I_main:
+    LFB1973:
+        .cfi_startproc
+        pushl	%ebp
+        .cfi_def_cfa_offset 8
+        .cfi_offset 5, -8
+        movl	%esp, %ebp
+        .cfi_def_cfa_register 5
+        subl	$24, %esp
+        movl	$65535, 4(%esp)
+        movl	$1, (%esp)
+        call	__Z41__static_initialization_and_destruction_0ii
+        leave
+        .cfi_restore 5
+        .cfi_def_cfa 4, 4
+        ret
+        .cfi_endproc
+    LFE1973:
+        .section	.ctors,"w"
+        .align 4
+        .long	__GLOBAL__sub_I_main
+        .ident	"GCC: (MinGW.org GCC-8.2.0-3) 8.2.0"
+        .def	__ZNSirsERi;	.scl	2;	.type	32;	.endef
+        .def	__ZNSolsEi;	.scl	2;	.type	32;	.endef
+        .def	__ZNSt8ios_base4InitD1Ev;	.scl	2;	.type	32;	.endef
+        .def	__ZNSt8ios_base4InitC1Ev;	.scl	2;	.type	32;	.endef
+        .def	_atexit;	.scl	2;	.type	32;	.endef
+    
+    \end{verbatim}
+    \section{three.cpp}\label{three_cpp}
+    \begin{verbatim}
+        #include<cstdio>
+        #include<queue>
+        #include<algorithm>
+        #include<vector>
+        #include<cstring>
+        using namespace std;
+        const int maxn=1020;
+        const int inf=0x3f3f3f3f;
+        struct Edge{
+            int from,to,dist;
+            Edge(int u=0,int v=0,int d=0):from(u),to(v),dist(d){}
+        };
+        struct Dijkstra{
+            int n,m;
+            vector<Edge> edges;
+            vector<int > G[maxn];
+            bool done[maxn];   //永久标记
+            int d[maxn];    //s到各点距离
+            int p[maxn];
+            void init(int n){
+                this->n=n;
+                for(int i=0;i<n;i++) G[i].clear();
+                edges.clear();
+            }
+            void AddEdge(int from,int to,int dist){
+                edges.push_back(Edge(from,to,dist));
+                m=edges.size();
+                G[from].push_back(m-1);
+            }
+            struct HeapNode{
+                int d,u;
+                bool operator < (const HeapNode& rhs) const{
+                    return d>rhs.d;
+                }
+                HeapNode(int dt,int ut)
+                {
+                    d=dt;
+                    u=ut;
+                }
+            };
+            void dijkstra(int s){
+                priority_queue<HeapNode> Q;
+                for(int i=0;i<n;i++) d[i]=inf;
+                d[s]=0;
+                memset(done,0,sizeof(done));
+                Q.push(HeapNode{0,s});
+                while(!Q.empty()){
+                    HeapNode x=Q.top();Q.pop();
+                    int u=x.u;
+                    if(done[u]) continue;
+                    done[u]=true;
+                    for(int i=0;i<G[u].size();i++){
+                        Edge& e=edges[G[u][i]];
+                        if(d[e.to]>d[u]+e.dist){
+                            d[e.to]=d[u]+e.dist;
+                            p[e.to]=G[u][i];
+                            HeapNode tmp(d[e.to],e.to);
+                            Q.push(tmp);
+                        }
+                    }
+                }
+            }
+        }dijkstra;
+        int main()
+        {
+            int N,M;
+            scanf("%d%d",&M,&N);
+            dijkstra.init(N);
+            for(int i=0;i<M;++i)
+            {
+                int fro,to,dis;
+                scanf("%d%d%d",&fro,&to,&dis);
+                --fro,--to;
+                dijkstra.AddEdge(fro,to,dis);
+                dijkstra.AddEdge(to,fro,dis);
+            }
+            dijkstra.dijkstra(N-1);
+            printf("%d\n",dijkstra.d[0]);
+            return 0;
+        } 
+    \end{verbatim}
+\end{document}
