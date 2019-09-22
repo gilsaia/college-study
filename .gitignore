@@ -3,7 +3,9 @@
 *.png
 *.pdf
 *.exe
+*.gz
 *.aux
 *.log
 *.gz
 *.pptx
+*.yml
