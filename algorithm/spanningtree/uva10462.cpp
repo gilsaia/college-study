@@ -5,6 +5,7 @@
 #include<cstring>
 using namespace std;
 const int maxn=120;
+const int inf=0x3f3f3f3f;
 struct edge
 {
     int from,to,weight;
@@ -111,8 +112,9 @@ int main()
 {
     int T;
     scanf("%d",&T);
-    while(T--)
+    for(int t=1;t<=T;++t)
     {
+        printf("Case #%d : ",t);
         int n,m;
         scanf("%d%d",&n,&m);
         init(n);
@@ -133,6 +135,7 @@ int main()
             scanf("%d%d%d",&tmp.from,&tmp.to,&tmp.weight);
             que.push(tmp);
         }
+        int usededge=0;
         for(int i=0;i<m;++i)
         {
             edge tmp=que.top();
@@ -144,29 +147,33 @@ int main()
                 G[tmp.from].push_back(tmp);
                 mst+=tmp.weight;
                 unite(tmp.from,tmp.to);
+                ++usededge;
             }
             else
             {
                 vec.push_back(tmp);
             }
         }
+        if(usededge<(n-1))
+        {
+            printf("No way\n");
+            continue;
+        }
         dfs(1,0,0);
         lca[0][1]=-1;
         init(1,n);
-        int haveuni=1;
+        int ans=inf;
+        if(vec.size()==0)
+        {
+            printf("No second way\n");
+            continue;
+        }
         for(int i=0;i<vec.size();++i)
         {
-            if(vec[i].weight==findlca(vec[i].from,vec[i].to))
-            {
-                printf("Not Unique!\n");
-                haveuni=0;
-                break;
-            }
+            int torel=findlca(vec[i].from,vec[i].to);
+            ans=min(ans,mst-torel+vec[i].weight);
         }
-        if(haveuni)
-        {
-            printf("%d\n",mst);
-        }
+        printf("%d\n",ans);
     }
     return 0;
 }

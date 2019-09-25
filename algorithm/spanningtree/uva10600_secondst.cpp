@@ -5,6 +5,7 @@
 #include<cstring>
 using namespace std;
 const int maxn=120;
+const int inf=0x3f3f3f3f;
 struct edge
 {
     int from,to,weight;
@@ -153,20 +154,13 @@ int main()
         dfs(1,0,0);
         lca[0][1]=-1;
         init(1,n);
-        int haveuni=1;
+        int ans=inf;
         for(int i=0;i<vec.size();++i)
         {
-            if(vec[i].weight==findlca(vec[i].from,vec[i].to))
-            {
-                printf("Not Unique!\n");
-                haveuni=0;
-                break;
-            }
+            int torel=findlca(vec[i].from,vec[i].to);
+            ans=min(ans,mst-torel+vec[i].weight);
         }
-        if(haveuni)
-        {
-            printf("%d\n",mst);
-        }
+        printf("%d %d\n",mst,ans);
     }
     return 0;
 }
