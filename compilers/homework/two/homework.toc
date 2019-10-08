@@ -1,0 +1,15 @@
+\contentsline {section}{\numberline {1}引言}{3}% 
+\contentsline {section}{\numberline {2}定义编程语言子集}{3}% 
+\contentsline {subsection}{\numberline {2.1}选择语言特性}{3}% 
+\contentsline {subsection}{\numberline {2.2}从表达式开始}{3}% 
+\contentsline {subsection}{\numberline {2.3}从表达式到语句}{4}% 
+\contentsline {subsection}{\numberline {2.4}程序段的形成}{6}% 
+\contentsline {subsection}{\numberline {2.5}结构体的加入}{6}% 
+\contentsline {section}{\numberline {3}编写汇编代码}{6}% 
+\contentsline {subsection}{\numberline {3.1}编辑环境设置}{6}% 
+\contentsline {subsection}{\numberline {3.2}gcd部分的代码}{6}% 
+\contentsline {subsection}{\numberline {3.3}快速幂部分的代码}{7}% 
+\contentsline {subsection}{\numberline {3.4}整体程序的代码}{8}% 
+\contentsline {subsection}{\numberline {3.5}与机器翻译结果的对比}{12}% 
+\contentsline {subsection}{\numberline {3.6}一些额外的思考}{14}% 
+\contentsline {section}{\numberline {4}结论}{14}% 

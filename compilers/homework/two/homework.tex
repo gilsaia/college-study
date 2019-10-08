@@ -1,0 +1,449 @@
+\documentclass[UTF8]{ctexart}
+\usepackage[left=1.25in,right=1.25in,
+top=1in,bottom=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{mathptmx}
+\usepackage{graphicx}
+\begin{document}
+\title{定义编译器功能}
+\author{杨俣哲}
+\maketitle
+\begin{abstract}
+	这篇文章的目的是选择支持哪些c语言特性，并在此基础上定义编译器支持的c语言子集。
+	另外我们尝试了汇编编程的方法，比较了机器编译与人直接编写汇编代码的差别，对以后要练习的
+	语言子集有了一个更加清晰的了解。
+
+    \centering
+    \textbf{关键字}:C语言，表达式，文法，汇编代码
+\end{abstract}
+\newpage
+\tableofcontents
+\newpage
+\section{引言}
+我们自定义的编译器要选择支持的语言的话，c/c++语言是一个很好的选择。我们对这门语言有比较详细的了解，
+选择c的一个子集实现起来相对的难度也会比较低，在下文中我们决定了要实现的语言特性，并从表达式开始逐步实现了
+这些特性，最终形成一个相对完整的c语言子集的文法。在尝试汇编编程的过程中，我们尝试了利用辗转相除法来实现求最大公因数，
+以及快速幂取模这样的小程序，分别尝试了递归写法以及循环的写法，尝试体会从高级语言到汇编代码的翻译的难度。
+\section{定义编程语言子集}
+\subsection{选择语言特性}
+根据\cite{creference}，我们选择适当的语言特性。
+
+预处理指令实际是由预处理阶段完成的，我们不在编译阶段实现。常见的控制语句，条件分支，循环，跳转等，除了switch我们
+在这里暂时不考虑其他的都会实现，而实际上switch语句可以很容易的转换成if-else语句，所以不会出现问题。
+运算符方面，c11标准的一些特性我们可能不会考虑，其他的运算符按照c中的15个优先级按顺序来实现。
+除此以外，我们还提供对声明语句的支持，以及一部分限定符的支持。
+在最后我们还尝试增加对结构体语句的支持，事实上在已经定义好的文法上实现结构体并不是很困难的一件事。
+
+这样我们就形成了一个我们自己的语言子集，能够比较完善的支持c语言的基本功能。
+\subsection{从表达式开始}
+如果自顶向下看，一个普通的c程序可以分为许多不同的部分，但是从最顶层来定义过于抽象
+很难第一时间想到比较合适的语法，所以我们考虑从表达式开始向下构建，再反过来逐步向上构建
+从而能够比较容易的定义出我们需要的语言子集。
+
+从表达式开始那么就一定会提到运算符优先级的问题，在这里我参考了\cite{C operator list}
+，为了实现优先级，我们从最低优先级的开始逐级定义
+\begin{align*}
+    expr\to &assignment\_expr\ |\ expr','assignment\_expr\\
+    assignment\_expr\to &conditional\_expr\ |\ cast\_expr\ assignment\_oper\ assignment\_expr\\
+    assignment\_oper\to &'='|'+='|'-='|'/='|'*='|'\%='|'<<='|'>>='|'\&='|'\wedge='|'|=' 
+\end{align*}
+由于赋值表达式是右结合的，同时赋值表达式的左侧需要满足一定条件，这里的赋值表达式左侧的实际非终结符号
+我们实际是到后面才知道的
+
+下面是对每个运算符按照优先级的依次定义
+\begin{align*}
+    conditional\_expr\to & logical\_or\_expr\ |\ logical\_or\_expr\ '?'\ expr\ ':'\ expr\\
+    logical\_or\_expr\to & logical\_and\_expr\ |\ logical\_or\_expr\ '||'\ logical\_and\_expr\\
+    logical\_and\_expr\to & bit\_or\_expr\ |\ logical\_and\_expr\ '\&\&'\ bit\_or\_expr\\
+    bit\_or\_expr\to & bit\_xor\_expr\ |\ bit\_or\_expr\ '|'\ bit\_xor\_expr\\
+    bit\_xor\_expr\to & bit\_and\_expr\ |\ bit\_xor\_expr\ '\wedge'\ bit\_and\_expr\\
+    bit\_and\_expr\to & equal\_expr\ |\ bit\_and\_expr\ '\&'\ equal\_expr\\
+    equal\_expr\to & relation\_expr\ |\ equal\_expr\ '=='\ relation\_expr\ |\ equal\_expr\ '!='\ relation\_expr\\
+    relation\_expr\to & shift\_expr\ |\ relation\_expr\ relation\_oper\ shift\_expr\\
+    relation\_oper\to & '>'\ |\ '<'\ |\ '>='\ |\ '<='\\
+    shift\_expr\to & arith\_expr\ |\ shift\_expr\ '<<'\ arith\_expr\ |\ shift\_expr\ '>>'\ arith\_expr\\
+    arith\_expr\to & multi\_expr\ |\ arith\_expr\ '+'\ multi\_expr\ |\ arith\_expr\ '-'\ multi\_expr\\
+    multi\_expr\to & cast\_expr\ |\ multi\_expr\ '*'\ cast\_expr\ |\ multi\_expr\ '/'\ cast\_expr\ |\ multi\_expr\ '\%'\ cast\_expr\\
+    cast\_expr\to & unary\_expr\ |\ '('\ type\_name\ ')' cast\_expr\\
+    unary\_expr\to & post\_expr\ |\ unary\_oper\ unary\_expr\ |\ 'sizeof('\ type\_name\ ')'\\
+    unary\_oper\to & '++'\ |\ '--'\ |\ 'sizeof'\ |\ '\&'\ |\ '*'\ |\ '+'\ |\ '-'\ |\ '\sim'\ |\ '!'\\
+    post\_expr\to & primary\_expr\ |\ post\_expr\ '['\ expr\ ']'\ |\ post\_expr\ '()'\ |\ post\_expr\ '('\ argument\_list\ ')'\\
+    & |\ post\_expr\ '.'\ IDENTIFIER\ |\ post\_expr\ '->'\ IDENTIFIER\\
+    & |\ post\_expr\ '++'\ |\ post\_expr\ '--'\\
+    primary\_expr\to & IDENTIFIER\ |\ CONSTANT\ |\ STRING\_LITERAL\ |\ '('\ expr\ ')'\\
+    argument\_list\to & assignment\_expr\ |\ argument\_list\ ','\ assignment\_expr
+\end{align*}
+到此为止我们基本对表达式的文法有了一个比较明确的定义，其中全大写的表示终结符。
+\subsection{从表达式到语句}
+我们从表达式可以定义出语句的概念，而语句除了表达式以外常见的还包括复合语句，判断语句，循环语句，跳转语句等，我们可以从
+语句的概念向下定义不同的语句
+\begin{align*}
+    expr\_stat\to & ';'\ |\ expr\ ';'\ \\
+    stat\to & comd\_stat\ |\ expr\_stat\ |\ sel\_stat\ |\ loop\_stat\ |\ jump\_stat\\
+    sel\_stat\to & 'if('\ expr\ ')'\ stat\ |\ 'if('\ expr\ ')'\ stat\ 'else'\ stat\\
+    loop\_stat\to & 'while('\ expr\ ')'\ stat\ |\ 'for('expr\_stat\ expr\_stat\ expr')'\ stat\\
+    jump\_stat\to & 'break;'\ |\ 'continue;'\ |\ 'return;'\ |\ 'return'\ expr\ ';'
+\end{align*}
+而为了定义复合语句，推广开来也就是一个个的语句块，每个语句块会由很多条语句组成，因此我们需要定义语句列表
+\begin{align*}
+    stat\_list\to & stat\ |\ stat\_list\ stat\\
+    comd\_stat\to & '\{\}'\ |\ '\{'\ stat\_list\ '\}'\ |\ '\{'decl\_list\ stat\_list\ '\}'
+\end{align*}
+其中语句我们已经定义过，声明语句则可以用已有的定义来规范
+\begin{align*}
+    decl\_list\to & decltion\ |\ decl\_list\ decltion\\
+    decltion\to & type\_name\ decltor\_list\\
+    decltor\_list\to & init\_decltor\ |\ decltor\_list\ init\_decltor\\
+    init\_decltor\to & decltor\ ';'\ |\ decltor\ '='\ initizer\ ';'\\
+    initizer\to & assignment\_expr\ |\ '\{'\ initizer\_list\ '\}'\ |\ '\{'\ initizer\_list\ ','\ '\}'\\
+    initizer\_list\to & initizer\ |\ initizer\_list\ ','\ initizer\\
+    decltior\to & pointer\ dire\_decltor\ |\ dire\_decltor\\
+    pointer\to & '*'\ |\ '*'\ pointer\\
+    dire\_decltor\to & IDENTIFIER\ |\ dire\_decltor'[]'\ |\ '['conditional\_expr']'\ |\ IDENTIFIER\ '('para\_list')'\\
+    & |\ IDENTIFIER\ '()'\ |\ dire\_decltor\ ','\ iden\_list\\
+    iden\_list\to & IDENTIFIER\ |\ iden\_list\ IDENTIFIER\\
+    para\_list\to & para\_decl\ |\ para\_list\ ','\ para\_decl\\
+    para\_decl\to & type\_specifer\ IDENTIFIER
+\end{align*}
+前面对于具体的类型没有详细的定义，下面我们来完善它
+\begin{align*}
+    type\_specifer\to & type\_name\ |\ type\_quelifer\_list\ type\_name\\
+    type\_quelifer\_list\to & type\_quelifer\_list\ type\_quelifer\\
+    type\_quelifer\to & 'const'\ |\ 'volatile'\\
+    type\_name\to & dire\_type\ pointer\ |\ dire\_type\\
+    dire\_type\to & dire\_type\_name\ |\ dire\_type\_name\ bracket\_list\\
+    bracket\_list\to & bracket\ |\ bracket\_list\ bracket\\
+    bracket\to & '[]'\ |\ '['conditional\_expr']'\\
+    dire\_type\_name\to & 'int'\ |\ 'char'\ |\ 'float'\ |\ 'short'\ |\ 'void'
+\end{align*}
+这样我们就完成了语句以及语句块的定义
+\subsection{程序段的形成}
+有了语句以及语句块的定义，下一步我们就可以定义出整个程序
+\begin{align*}
+    program\to & prog\_decl\ |\ prog\_decl\ program\\
+    prog\_decl\to & func\_defin\ |\ decltion\\
+    func\_defin\to & type\_name\ decltor\ comd\_stat
+\end{align*}
+到此为止我们基本的程序文法就定义完成了
+\subsection{结构体的加入}
+完成了以上的基本文法定义后，我们考虑加入c语言中的一种常用语句：结构体
+\begin{align*}
+    strut\_defin\to & 'struct'\ IDENTIFIER\ '\{'strut\_list'\}'\ |\ 'struct'\ '\{'strut\_list'\}'\ |\ 'struct'\ IDENTIFIER\\
+    strut\_list\to & decltion\ |\ strut\_list\ decltion
+\end{align*}
+而后更改之前的一条文法规则为
+\begin{equation*}
+    prog\_decl\to func\_defin\ |\ decltion\ |\ strut\_defin
+\end{equation*}
+即可完成对结构体文法的简单定义，实际上不同类型的声明语句会有不同的要求，我们可能需要对前面提出的某些
+声明语句文法在不同地方的应用加以细化
+\section{编写汇编代码}
+为了编写汇编代码，我们选用了vs作为编写代码的工具，实现了gcd以及快速幂的汇编程序，
+并编写出对应的c++代码
+\subsection{编辑环境设置}
+为了能够方便的调试汇编代码，我选择了在我平时常用的IDE vs2019上实现汇编代码的编写，
+安装好相关的代码高亮插件，装好masm32环境在项目中设置好依赖后，成功实现了在vs上编写汇编代码
+\subsection{gcd部分的代码}
+我们分别写出两部分的子程序后再列出整体程序。
+
+gcd部分子程序如下
+\begin{verbatim}
+gcd:
+	cmp ebx,0
+	jnz	compute
+	ret	
+compute:
+	mov edx,0
+	div ebx
+	mov eax,ebx
+	mov ebx,edx
+	call gcd	
+	ret	
+\end{verbatim}
+对应的c++函数如下
+\begin{verbatim}    
+int gcd(int a,int b){
+    return b?gcd(b,a%b):a;
+}
+\end{verbatim}
+可以看到，这里基本是很直接的翻译过程，每次调用子过程先检查b（存在ebx中），如果为零直接返回
+结果存在eax中，如果不为零则计算a\%b然后挪动到对应位置再次调用子过程即可
+\subsection{快速幂部分的代码}
+\begin{verbatim}
+modpow:
+	mov ecx,[y]
+	cmp ecx,0;当前取幂次数为0时结束程序
+	jz	powend
+	push eax;暂存临时结果
+	and	ecx,1;判断当前次数是否为单数，若是则结果乘上当前的x
+	cmp ecx,1
+	jnz powsingle
+	pop eax
+	mov ebx,[x]
+	xor edx,edx
+	mul ebx
+	mov ebx,[p]
+	div ebx
+	mov eax,edx
+	push eax
+powsingle:;取幂次数除二，x变为自身的平方
+	mov eax,[y]
+	xor edx,edx
+	mov ecx,2
+	div ecx
+	mov [y],eax
+	mov eax,[x]
+	xor edx,edx
+	mul eax
+	mov ebx,[p]
+	div ebx
+	mov [x],edx
+	pop eax
+	jmp modpow	
+powend:
+	ret	
+\end{verbatim}
+这里需要说明的是，x,y,p是在数据段申请的三个双字的空间，对应的c++代码如下
+\begin{verbatim}
+int modexp(int a, int b, int mod)
+{
+    int res=1;
+    while(b>0)
+    {
+        if(b&1)
+            res=res*a%mod;
+        b=b/2;
+        a=a*a%mod;
+    }
+    return res;
+}
+\end{verbatim}
+eax在调用前初始化为1，而后便是按照c++函数的过程，最后结果存在eax中，中间处理过程中为了保护暂存的结果我们
+用到了入栈出栈的方法，这里就要仔细的观察栈平衡的问题，div与mul指令当操作寄存器为32位时都会默认另一操作数为edx:eax，
+所以要注意edx的清零
+\subsection{整体程序的代码}
+\begin{verbatim}
+.386
+.model flat, stdcall
+option casemap:none
+includelib      msvcrt.lib
+printf          PROTO C :ptr sbyte, :VARARG
+scanf			PROTO C :ptr sbyte, :vararg
+.data
+szMsg           byte    "输入a,b输出gcd(a,b)", 0ah, 0
+powMsg			byte	"输入x,y,p输出x^y mod p",0ah,0
+choosestr		byte	"0-gcd，1-快速幂",0ah,0
+twonumstring	byte	"%u %u",0
+onenumstring	byte	"%u",0
+op				dd	0
+a				dd	0
+b				dd	0
+x				dd	0
+y				dd	0
+p				dd	0
+.code
+gcd:
+	cmp ebx,0
+	jnz	compute
+	ret	
+compute:
+	mov edx,0
+	div ebx
+	mov eax,ebx
+	mov ebx,edx
+	call gcd	
+	ret	
+modpow:
+	mov ecx,[y]
+	cmp ecx,0;当去取幂次数为0时结束程序
+	jz	powend
+	push eax;暂存临时结果
+	and	ecx,1;判断当前次数是否为单数，若是则结果乘上当前的x
+	cmp ecx,1
+	jnz powsingle
+	pop eax
+	mov ebx,[x]
+	xor edx,edx
+	mul ebx
+	mov ebx,[p]
+	div ebx
+	mov eax,edx
+	push eax
+powsingle:;取幂次数除二，x变为自身的平方
+	mov eax,[y]
+	xor edx,edx
+	mov ecx,2
+	div ecx
+	mov [y],eax
+	mov eax,[x]
+	xor edx,edx
+	mul eax
+	mov ebx,[p]
+	div ebx
+	mov [x],edx
+	pop eax
+	jmp modpow	
+powend:
+	ret	
+main:
+	invoke	printf,addr choosestr
+	invoke scanf,addr onenumstring,addr op
+	cmp op,1
+	jz modpowop
+	invoke printf,addr szMsg
+	invoke	scanf,addr twonumstring,addr a,addr b
+	mov eax,[a]
+	mov ebx,[b]
+	call gcd
+	jmp proend	
+modpowop:
+	invoke printf,addr powMsg
+	invoke	scanf,addr twonumstring,addr x,addr y
+	invoke scanf,addr onenumstring,addr p
+	mov eax,1
+	call modpow
+proend:
+	invoke	printf,offset	onenumstring,eax
+	ret
+end             main
+\end{verbatim}
+整体程序用了masm的宏scanf和printf，在vs中我们只需要包含lib即可调用，数据段放了我们对应的数据，
+入口是在vs设定的main段，其运行结果如图\ref{gcd},\ref{modexp}
+\begin{figure}[hbt]
+	\centering
+	\includegraphics{2019-10-08.png}
+	\caption{gcd结果}\label{gcd}
+\end{figure}
+\begin{figure}[hbt]
+	\centering
+	\includegraphics{2019-10-081.png}
+	\caption{快速幂结果}\label{modexp}
+\end{figure}
+
+程序对应的c++代码如下
+\begin{verbatim}
+#include<cstdio>
+using namespace std;
+unsigned int gcd(unsigned int a,unsigned int b){
+    return b?gcd(b,a%b):a;
+}
+unsigned int modexp(unsigned int a,unsigned int b,unsigned int mod)
+{
+    unsigned int res=1;
+    while(b>0)
+    {
+        if(b&1)
+            res=res*a%mod;
+        b=b/2;
+        a=a*a%mod;
+    }
+    return res;
+}
+int main()
+{
+    printf("0-gcd，1-快速幂\n");
+    unsigned int op;
+    scanf("%u",&op);
+    unsigned int res;
+    if(op==0)
+    {
+        printf("输入a,b输出gcd(a,b)\n");
+        unsigned int a,b;
+        scanf("%u%u",&a,&b);
+        res=gcd(a,b);
+    }
+    else
+    {
+        printf("输入x,y,p输出x^y mod p\n");
+        unsigned int x,y,p;
+        scanf("%u%u%u",&x,&y,&p);
+        res=modexp(x,y,p);
+    }
+    printf("%u\n",res);
+    return 0;
+}
+\end{verbatim}
+\subsection{与机器翻译结果的对比}
+考虑到篇幅问题，我们只看gcd部分的机器翻译结果，在不进行优化时，结果如下
+\begin{verbatim}
+.text
+.globl	_Z3gcdjj
+.def	_Z3gcdjj;	.scl	2;	.type	32;	.endef
+.seh_proc	_Z3gcdjj
+_Z3gcdjj:
+	pushq	%rbp
+	.seh_pushreg	%rbp
+	movq	%rsp, %rbp
+	.seh_setframe	%rbp, 0
+	subq	$32, %rsp
+	.seh_stackalloc	32
+	.seh_endprologue
+	movl	%ecx, 16(%rbp)
+	movl	%edx, 24(%rbp)
+	cmpl	$0, 24(%rbp)
+	je	.L6
+	movl	16(%rbp), %eax
+	movl	$0, %edx
+	divl	24(%rbp)
+	movl	24(%rbp), %eax
+	movl	%eax, %ecx
+	call	_Z3gcdjj
+	jmp	.L8
+.L6:
+	movl	16(%rbp), %eax
+.L8:
+	addq	$32, %rsp
+	popq	%rbp
+	ret
+	.seh_endproc
+\end{verbatim}
+可以大致看出基本还是符合我们直接翻译的流程的，而当进行O3级别优化后，代码如下
+\begin{verbatim}
+	.text
+	.p2align 4,,15
+	.globl	_Z3gcdjj
+	.def	_Z3gcdjj;	.scl	2;	.type	32;	.endef
+	.seh_proc	_Z3gcdjj
+_Z3gcdjj:
+	.seh_endprologue
+	testl	%edx, %edx
+	movl	%ecx, %eax
+	movl	%edx, %r8d
+	jne	.L6
+	jmp	.L9
+	.p2align 4,,10
+.L8:
+	movl	%edx, %r8d
+.L6:
+	xorl	%edx, %edx
+	divl	%r8d
+	movl	%r8d, %eax
+	testl	%edx, %edx
+	jne	.L8
+	movl	%r8d, %eax
+	ret
+	.p2align 4,,10
+.L9:
+	movl	%ecx, %r8d
+	movl	%r8d, %eax
+	ret
+	.seh_endproc	
+\end{verbatim}
+可以看出子程序的递归调用被改为了循环体以加快速度
+\subsection{一些额外的思考}
+编译器在进行翻译时，为了应对所有可能的情况，往往不可能对某一条指令有特定的优化，
+而是对于整个程序按序翻译后，采取最安全的措施以保证对于任意的情况编译器都能够翻译。
+这就是我们看到机器翻译的往往比直接书写汇编要长而且看起来规整许多。
+经过我们目前学到的词法、语法翻译后，我们已经有了一个语法树，经过检查没有其他问题的话，
+就可以针对每一条文法规则设计对应的翻译规则，这样我们就得到了一个通用的翻译，而后再考虑
+有哪些通用的优化方法可以执行，翻译的规则是有限的，经过不同的运算就可以覆盖到无限的程序区间上。
+\section{结论}
+我们定义了我们自己的c语言子集，实现了部分c99标准的特性，但是文法中对于一些错误情况并没有加以规范，这可能需要到
+语义检查阶段去进行。我们还尝试了汇编语言编程，对比了机器翻译与人工翻译的差别，思考这其中的原因，为之后的作业
+做好准备。
+\begin{thebibliography}{99}
+	\bibitem{C operator list} https://zh.cppreference.com/w/c/language/operator\_precedence
+	\bibitem{creference} https://zh.cppreference.com/w/c
+\end{thebibliography}
+\end{document}
