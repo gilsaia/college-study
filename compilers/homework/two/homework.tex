@@ -36,6 +36,26 @@ top=1in,bottom=1in]{geometry}
 在最后我们还尝试增加对结构体语句的支持，事实上在已经定义好的文法上实现结构体并不是很困难的一件事。
 
 这样我们就形成了一个我们自己的语言子集，能够比较完善的支持c语言的基本功能。
+\subsection{标识符的定义}
+在这里我们定义标识符的表达方式，而在后文中为了理解的直观性我们将以终结符号$IDENTIFIER$代替这里规定的标识符$id$
+\begin{align*}
+	id\to & ichar\ |\ id\ ichar\ |\ id\ digit\\
+	ichar\to & \_|letter\\
+	letter\to & A|B|C|\cdots|Z|a|b|c|\cdots|z\\
+	digit\to & 1|2|3|4|5|6|7|8|9|0
+\end{align*}
+同样对于常量我们在后文用$CONSTANT$代替这里定义的$number$
+\begin{align*}
+	number\to & op\ unsignnumber\ |\ unsignnumber\\
+	op\to & '-'\ |\ '+'\\
+	unsignnumber\to & digit\ |\ unsignnumber\ digit
+\end{align*}
+对于字符串我们同样有类似方法用$STRING$替代$str$
+\begin{align*}
+	str\to & char\ |str\ char\\
+	char\to & a|b|c|\cdots|z|A|B|C|\cdots|Z|!|@|\#|\cdots
+\end{align*}
+这样就完成了各种标识符的定义。
 \subsection{从表达式开始}
 如果自顶向下看，一个普通的c程序可以分为许多不同的部分，但是从最顶层来定义过于抽象
 很难第一时间想到比较合适的语法，所以我们考虑从表达式开始向下构建，再反过来逐步向上构建
@@ -71,7 +91,7 @@ top=1in,bottom=1in]{geometry}
     post\_expr\to & primary\_expr\ |\ post\_expr\ '['\ expr\ ']'\ |\ post\_expr\ '()'\ |\ post\_expr\ '('\ argument\_list\ ')'\\
     & |\ post\_expr\ '.'\ IDENTIFIER\ |\ post\_expr\ '->'\ IDENTIFIER\\
     & |\ post\_expr\ '++'\ |\ post\_expr\ '--'\\
-    primary\_expr\to & IDENTIFIER\ |\ CONSTANT\ |\ STRING\_LITERAL\ |\ '('\ expr\ ')'\\
+    primary\_expr\to & IDENTIFIER\ |\ CONSTANT\ |\ STRING\ |\ '('\ expr\ ')'\\
     argument\_list\to & assignment\_expr\ |\ argument\_list\ ','\ assignment\_expr
 \end{align*}
 到此为止我们基本对表达式的文法有了一个比较明确的定义，其中全大写的表示终结符。
