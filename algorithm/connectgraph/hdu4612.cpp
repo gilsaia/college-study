@@ -4,7 +4,7 @@
 #include<vector>
 #include<cmath>
 using namespace std;
-const int maxn=5020;
+const int maxn=500020;
 int par[maxn];
 void init(int n)
 {
